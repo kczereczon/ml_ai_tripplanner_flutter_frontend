@@ -41,7 +41,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     pr = new ProgressDialog(context);
     return Scaffold(
-        backgroundColor: Color(0xFFEEEEEE),
+        // backgroundColor: Color(0xFFEEEEEE),
         body: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Column(
