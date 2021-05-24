@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:laira/screens/home.dart';
 import 'package:progress_dialog/progress_dialog.dart';
+
+final storage = new FlutterSecureStorage();
 
 class Login extends StatefulWidget {
   @override
@@ -125,6 +128,7 @@ class _LoginState extends State<Login> {
                         if (response.statusCode != 200) {
                           this._setError(map['error']);
                         } else {
+                          await storage.write(key: 'jwt', value: map['token']);
                           await Navigator.pushReplacementNamed(context, "/home");
                         }
                       } catch (e) {

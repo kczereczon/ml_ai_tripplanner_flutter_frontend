@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:laira/screens/home.dart';
 import 'package:laira/screens/login.dart';
 
+
 void main() {
   runApp(MyApp());
 }
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Color(0xFF189AB4)
       ),
-      home: Login(),
+      home: HomePage(),
       routes: {
       '/login': (context) => Login(),
       // When navigating to the "/" route, build the FirstScreen widget.
