@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBody: true,
       body: Container(
+        padding: EdgeInsets.only(bottom: 30),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(left: 13.0, top: 10, bottom: 5),
                 child: Text(
-                  "New in your neibour",
+                  "New in your neighbour",
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                 ),
               ),
@@ -63,6 +64,13 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Color(0xFFEEEEEE),
       bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(30), topLeft: Radius.circular(30)),
+            boxShadow: [
+              BoxShadow(color: Colors.black38, spreadRadius: 0, blurRadius: 10),
+            ],
+          ),
           child: ClipRRect(
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(30.0),
@@ -140,10 +148,69 @@ class PlaceCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  "Atraction",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Atraction",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        "ul. Lwowska 28, 37-610 Lipsko",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w300, fontSize: 13),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star,
+                            size: 15,
+                          ),
+                          Icon(
+                            Icons.star,
+                            size: 15,
+                          ),
+                          Icon(
+                            Icons.star,
+                            size: 15,
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_walk,
+                            size: 20,
+                          ),
+                          Text("1h 30m")
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_bike,
+                            size: 20,
+                          ),
+                          Text("1h 30m")
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_car,
+                            size: 20,
+                          ),
+                          Text("1h 30m")
+                        ],
+                      )
+                    ]),
               )
             ])),
         shape: RoundedRectangleBorder(
