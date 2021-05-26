@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:laira/screens/places/detail.dart';
 
 final storage = new FlutterSecureStorage();
 
@@ -44,14 +45,6 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   "Near you",
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 30),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 13.0, top: 10, bottom: 5),
-                child: Text(
-                  "New in your neighbour",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                 ),
               ),
               PlacesList(),
@@ -108,16 +101,29 @@ class PlacesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.fromLTRB(10, 0, 10, 30),
-      child: Row(
-        children: [
-          PlaceCard(),
-          PlaceCard(),
-          PlaceCard(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.only(left: 13.0, top: 10, bottom: 5),
+          child: Text(
+            "New in your neighbour",
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.fromLTRB(10, 0, 10, 30),
+          child: Row(
+            children: [
+              PlaceCard(),
+              PlaceCard(),
+              PlaceCard(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -130,91 +136,95 @@ class PlaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Card(
-        elevation: 0,
-        child: SizedBox(
-            width: 200,
-            height: 300,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10)),
-                child: Image.network(
-                  "https://tropter.com/uploads/uploads/images/ce/b8/1df885b1d3b8bf8e6a764c7e023a54b722a7/letni_palac_lubomirskich_000_big.jpg?t=20200122105218",
-                  fit: BoxFit.cover,
+      
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context)=> PlaceDetail())),
+              child: Card(
+          elevation: 0,
+          child: SizedBox(
+              width: 200,
+              height: 300,
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10)),
+                  child: Image.network(
+                    "https://tropter.com/uploads/uploads/images/ce/b8/1df885b1d3b8bf8e6a764c7e023a54b722a7/letni_palac_lubomirskich_000_big.jpg?t=20200122105218",
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Atraction",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                      Text(
-                        "ul. Lwowska 28, 37-610 Lipsko",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w300, fontSize: 13),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star,
-                            size: 15,
-                          ),
-                          Icon(
-                            Icons.star,
-                            size: 15,
-                          ),
-                          Icon(
-                            Icons.star,
-                            size: 15,
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.directions_walk,
-                            size: 20,
-                          ),
-                          Text("1h 30m")
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.directions_bike,
-                            size: 20,
-                          ),
-                          Text("1h 30m")
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.directions_car,
-                            size: 20,
-                          ),
-                          Text("1h 30m")
-                        ],
-                      )
-                    ]),
-              )
-            ])),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Atraction",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        Text(
+                          "ul. Lwowska 28, 37-610 Lipsko",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w300, fontSize: 13),
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              size: 15,
+                            ),
+                            Icon(
+                              Icons.star,
+                              size: 15,
+                            ),
+                            Icon(
+                              Icons.star,
+                              size: 15,
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.directions_walk,
+                              size: 20,
+                            ),
+                            Text("1h 30m")
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.directions_bike,
+                              size: 20,
+                            ),
+                            Text("1h 30m")
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.directions_car,
+                              size: 20,
+                            ),
+                            Text("1h 30m")
+                          ],
+                        )
+                      ]),
+                )
+              ])),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );
