@@ -16,20 +16,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  String token;
 
   @override
   initState() {
-    Future.delayed(Duration.zero, () async {
-      token = await storage.read(key: 'jwt');
-      if (token == null) {
-        await Navigator.pushReplacementNamed(context, "/login");
-      }
-    });
+    Future.delayed(Duration.zero, () async {});
     super.initState();
   }
 
   Future<List<Place>> getNearPlaces() async {
+    String token = await storage.read(key: 'jwt');
+    if (token == null) {
+      await Navigator.pushReplacementNamed(context, "/login");
+    }
     final List<Place> places = [];
     final response = await http.get(
         Uri.http('192.168.1.67:3333', '/api/places/around'),
@@ -212,10 +210,7 @@ class PlaceCard extends StatelessWidget {
         tag: tag,
         child: GestureDetector(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => PlaceDetail(
-                    place: place,
-                    tag: tag
-                  ))),
+              builder: (context) => PlaceDetail(place: place, tag: tag))),
           child: Card(
             elevation: 0,
             child: SizedBox(

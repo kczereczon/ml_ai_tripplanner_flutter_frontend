@@ -19,7 +19,7 @@ class Place {
   }
 
   String walkTime() {
-    return convertToTime(this.distance / 5000);
+    return convertToTime(this.distance / 4000);
   }
 
   String bikeTime() {
@@ -32,7 +32,7 @@ class Place {
 
   String convertToTime(double time) {
     int hrs = time.round();
-    int min = (time.round() - hrs) * 60;
+    int min = ((time - hrs) * 60).round();
 
     String string = "";
 
@@ -42,7 +42,8 @@ class Place {
     if (min > 0) {
       string += min.toString() + " min";
     }
-    if (hrs < 1 && min < 1) {
+
+    if (string.isEmpty) {
       string = ">1 min";
     }
     return string;
