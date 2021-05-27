@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:laira/entities/address.dart';
 
 class Place {
@@ -70,10 +72,22 @@ class Place {
         json['image'],
         json['name'],
         json['_id'],
-        json['description'],
+        json['description'] ?? "Testowy opis",
         Address(json['address']['street'], json['address']['number'],
             json['address']['postal_code'], json['address']['city']),
         double.parse(json['distance'].toString()),
         double.parse("4"));
+  }
+
+  Row getRating(double size) {
+    return Row(
+      children: <Widget>[
+        for (int i = 0; i < rating.round(); i++)
+          Icon(
+            Icons.star,
+            size: size,
+          )
+      ],
+    );
   }
 }

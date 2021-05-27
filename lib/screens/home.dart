@@ -203,15 +203,18 @@ class HeroCard extends StatelessWidget {
 class PlaceCard extends StatelessWidget {
   const PlaceCard({Key key, this.place}) : super(key: key);
   final Place place;
+
   @override
   Widget build(BuildContext context) {
+    String tag = place.photoUrl + DateTime.now().microsecond.toString();
     return Container(
       child: Hero(
-        tag: place.photoUrl + DateTime.now().toString(),
+        tag: tag,
         child: GestureDetector(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => PlaceDetail(
                     place: place,
+                    tag: tag
                   ))),
           child: Card(
             elevation: 0,
@@ -238,34 +241,19 @@ class PlaceCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Atraction",
+                                place.name,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                               Text(
-                                "ul. Lwowska 28, 37-610 Lipsko",
+                                place.address.getAddressOnUi(),
                                 style: TextStyle(
                                     fontWeight: FontWeight.w300, fontSize: 13),
                               ),
                               SizedBox(
                                 height: 30,
                               ),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 15,
-                                  ),
-                                  Icon(
-                                    Icons.star,
-                                    size: 15,
-                                  ),
-                                  Icon(
-                                    Icons.star,
-                                    size: 15,
-                                  ),
-                                ],
-                              ),
+                              place.getRating(15),
                               SizedBox(
                                 height: 10,
                               ),
@@ -275,7 +263,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_walk,
                                     size: 20,
                                   ),
-                                  Text("1h 30m")
+                                  Text(place.walkTime())
                                 ],
                               ),
                               Row(
@@ -284,7 +272,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_bike,
                                     size: 20,
                                   ),
-                                  Text("1h 30m")
+                                  Text(place.bikeTime())
                                 ],
                               ),
                               Row(
@@ -293,7 +281,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_car,
                                     size: 20,
                                   ),
-                                  Text("1h 30m")
+                                  Text(place.carTime())
                                 ],
                               )
                             ]),

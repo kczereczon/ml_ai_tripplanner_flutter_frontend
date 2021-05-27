@@ -18,6 +18,7 @@ class PlaceDetail extends StatefulWidget {
 class _PlaceDetailState extends State<PlaceDetail> {
   @override
   Widget build(BuildContext context) {
+    print(widget.tag);
     return Scaffold(
       backgroundColor: Color(0xfffefefef),
       body: Column(
@@ -56,14 +57,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                     SizedBox(
                       height: 30,
                     ),
-                    Row(
-                      children: <Widget>[
-                        for (int i =0; i < widget.place.rating.round(); i++) Icon(
-                          Icons.star,
-                          size: 20,
-                        )
-                      ],
-                    ),
+                    widget.place.getRating(20),
                     SizedBox(
                       height: 10,
                     ),
