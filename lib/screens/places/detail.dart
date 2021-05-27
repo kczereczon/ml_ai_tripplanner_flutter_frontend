@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:laira/entities/place.dart';
 
 class PlaceDetail extends StatefulWidget {
+
+  final Place place;
+
+  final String tag;
+
+  const PlaceDetail(
+      {Key key, this.place, this.tag,
+      })
+      : super(key: key);
   @override
   _PlaceDetailState createState() => _PlaceDetailState();
 }
@@ -12,9 +22,12 @@ class _PlaceDetailState extends State<PlaceDetail> {
       backgroundColor: Color(0xfffefefef),
       body: Column(
         children: [
-          Image.network(
-            "https://tropter.com/uploads/uploads/images/ce/b8/1df885b1d3b8bf8e6a764c7e023a54b722a7/letni_palac_lubomirskich_000_big.jpg?t=20200122105218",
-            fit: BoxFit.cover,
+          Hero(
+            tag: widget.tag,
+            child: Image.network(
+              widget.place.photoUrl,
+              fit: BoxFit.cover,
+            ),
           ),
           Container(
             child: Padding(
@@ -23,19 +36,19 @@ class _PlaceDetailState extends State<PlaceDetail> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Atraction",
+                      widget.place.name,
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
                     ),
                     Text(
-                      "ul. Lwowska 28, 37-610 Lipsko",
+                      widget.place.address.getAddressOnUi(),
                       style:
                           TextStyle(fontWeight: FontWeight.w300, fontSize: 23),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
                       child: Text(
-                        "Description description description",
+                        widget.place.description,
                         style: TextStyle(
                             fontWeight: FontWeight.w200, fontSize: 18),
                       ),
@@ -44,19 +57,11 @@ class _PlaceDetailState extends State<PlaceDetail> {
                       height: 30,
                     ),
                     Row(
-                      children: [
-                        Icon(
+                      children: <Widget>[
+                        for (int i =0; i < widget.place.rating.round(); i++) Icon(
                           Icons.star,
                           size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          size: 20,
-                        ),
+                        )
                       ],
                     ),
                     SizedBox(
@@ -76,7 +81,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                   Icons.directions_walk,
                                   size: 30,
                                 ),
-                                Text("1h 30m")
+                                Text(widget.place.walkTime())
                               ],
                             ),
                             Column(
@@ -85,7 +90,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                   Icons.directions_bike,
                                   size: 30,
                                 ),
-                                Text("1h 30m")
+                                Text(widget.place.bikeTime())
                               ],
                             ),
                             Column(
@@ -94,7 +99,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                   Icons.directions_car,
                                   size: 30,
                                 ),
-                                Text("1h 30m")
+                                Text(widget.place.carTime())
                               ],
                             )
                           ],
@@ -148,14 +153,15 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                 ),
                               ),
                               Expanded(
-                                                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           "John Kowalski",
@@ -164,15 +170,15 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                               fontSize: 15),
                                         ),
                                         Text(
-                                      "02.03.2020",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w300,
-                                          fontSize: 13,),
-                                    ),
+                                          "02.03.2020",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: 13,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     Text("Best place for holyday!"),
-                                    
                                   ],
                                 ),
                               )

@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:laira/entities/place.dart';
 import 'package:laira/screens/places/detail.dart';
+
+import 'package:http/http.dart' as http;
 
 final storage = new FlutterSecureStorage();
 
@@ -11,16 +16,36 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  String token;
 
   @override
   initState() {
     Future.delayed(Duration.zero, () async {
-      String token = await storage.read(key: 'jwt');
+      token = await storage.read(key: 'jwt');
       if (token == null) {
         await Navigator.pushReplacementNamed(context, "/login");
       }
     });
     super.initState();
+  }
+
+  Future<List<Place>> getNearPlaces() async {
+    final List<Place> places = [];
+    final response = await http.get(
+        Uri.http('192.168.1.67:3333', '/api/places/around'),
+        headers: {'auth-token': token});
+    if (response.statusCode == 200) {
+      var json = jsonDecode(response.body);
+      for (var i = 0; i < json.length; i++) {
+        places.add(Place.parseFromJson(json[i]));
+      }
+    } else {
+      if (response.statusCode == 401) {
+        return await Navigator.pushReplacementNamed(context, "/login");
+      }
+      throw Exception('Failed to get http');
+    }
+    return places;
   }
 
   void _onItemTapped(int index) {
@@ -43,14 +68,14 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(left: 13.0, top: 40),
                 child: Text(
-                  "Near you",
+                  "Places for you",
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 30),
                 ),
               ),
-              PlacesList(),
-              PlacesList(),
-              PlacesList(),
-              PlacesList(),
+              PlacesList(
+                name: "Near you",
+                function: getNearPlaces(),
+              ),
             ],
           ),
         ),
@@ -95,9 +120,16 @@ class _HomePageState extends State<HomePage> {
 }
 
 class PlacesList extends StatelessWidget {
+  final Future<List<Place>> function;
   const PlacesList({
     Key key,
+    // @required this.places,
+    this.name,
+    this.function,
   }) : super(key: key);
+
+  // final List<PlaceCard> places;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -108,122 +140,168 @@ class PlacesList extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 13.0, top: 10, bottom: 5),
           child: Text(
-            "New in your neighbour",
+            this.name,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
           ),
         ),
         SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.fromLTRB(10, 0, 10, 30),
-          child: Row(
-            children: [
-              PlaceCard(),
-              PlaceCard(),
-              PlaceCard(),
-            ],
-          ),
-        ),
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.fromLTRB(10, 0, 10, 30),
+            child: FutureBuilder<List<Place>>(
+              future: function,
+              initialData: [],
+              builder:
+                  (BuildContext context, AsyncSnapshot<List<Place>> snapshot) {
+                List<Widget> children = [];
+                if (snapshot.hasData) {
+                  for (Place place in snapshot.data) {
+                    children.add(PlaceCard(place: place));
+                  }
+                  return Row(children: children);
+                } else {
+                  return SizedBox(
+                    child: CircularProgressIndicator(),
+                    width: 60,
+                    height: 60,
+                  );
+                }
+              },
+            )),
       ],
     );
   }
 }
 
-class PlaceCard extends StatelessWidget {
-  const PlaceCard({
-    Key key,
-  }) : super(key: key);
+class HeroCard extends StatelessWidget {
+  const HeroCard({Key key, this.photo, this.onTap, this.width})
+      : super(key: key);
 
+  final String photo;
+  final VoidCallback onTap;
+  final double width;
+
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: Hero(
+        tag: photo,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Image.asset(
+              photo,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PlaceCard extends StatelessWidget {
+  const PlaceCard({Key key, this.place}) : super(key: key);
+  final Place place;
   @override
   Widget build(BuildContext context) {
     return Container(
-      
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context)=> PlaceDetail())),
-              child: Card(
-          elevation: 0,
-          child: SizedBox(
-              width: 200,
-              height: 300,
-              child:
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10)),
-                  child: Image.network(
-                    "https://tropter.com/uploads/uploads/images/ce/b8/1df885b1d3b8bf8e6a764c7e023a54b722a7/letni_palac_lubomirskich_000_big.jpg?t=20200122105218",
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Atraction",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18),
+      child: Hero(
+        tag: place.photoUrl + DateTime.now().toString(),
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => PlaceDetail(
+                    place: place,
+                  ))),
+          child: Card(
+            elevation: 0,
+            child: SizedBox(
+                width: 200,
+                height: 300,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10)),
+                        child: Image.network(
+                          place.photoUrl,
+                          fit: BoxFit.cover,
+                          height: 120,
+                          width: 200,
                         ),
-                        Text(
-                          "ul. Lwowska 28, 37-610 Lipsko",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w300, fontSize: 13),
-                        ),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.star,
-                              size: 15,
-                            ),
-                            Icon(
-                              Icons.star,
-                              size: 15,
-                            ),
-                            Icon(
-                              Icons.star,
-                              size: 15,
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.directions_walk,
-                              size: 20,
-                            ),
-                            Text("1h 30m")
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.directions_bike,
-                              size: 20,
-                            ),
-                            Text("1h 30m")
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.directions_car,
-                              size: 20,
-                            ),
-                            Text("1h 30m")
-                          ],
-                        )
-                      ]),
-                )
-              ])),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Atraction",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                              Text(
+                                "ul. Lwowska 28, 37-610 Lipsko",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w300, fontSize: 13),
+                              ),
+                              SizedBox(
+                                height: 30,
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    size: 15,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    size: 15,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    size: 15,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_walk,
+                                    size: 20,
+                                  ),
+                                  Text("1h 30m")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_bike,
+                                    size: 20,
+                                  ),
+                                  Text("1h 30m")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_car,
+                                    size: 20,
+                                  ),
+                                  Text("1h 30m")
+                                ],
+                              )
+                            ]),
+                      )
+                    ])),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ),
