@@ -10,9 +10,11 @@ class Place {
   final Address address;
   final double distance;
   final double rating;
+  final double lat;
+  final double lon;
 
   Place(this.photoUrl, this.name, this.id, this.description, this.address,
-      this.distance, this.rating);
+      this.distance, this.rating, this.lat, this.lon);
 
   String carTime() {
     return convertToTime(this.distance / 70000);
@@ -77,7 +79,9 @@ class Place {
         Address(json['address']['street'], json['address']['number'],
             json['address']['postal_code'], json['address']['city']),
         double.parse(json['distance'].toString()),
-        double.parse("4"));
+        double.parse("4"),
+        double.parse(json['location'][0].toString()),
+        double.parse(json['location'][1].toString()));
   }
 
   Row getRating(double size) {

@@ -48,6 +48,7 @@ class _HomePageState extends State<HomePage>
               new Tab(icon: new Icon(Icons.people, color: Colors.black))
             ])),
         body: new TabBarView(
+            physics: NeverScrollableScrollPhysics(),
             controller: controller,
             children: <Widget>[new Places(), new Planning(), new Social()]));
   }
