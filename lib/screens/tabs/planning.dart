@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
-class Planning extends StatelessWidget {
+class Planning extends StatefulWidget {
+  @override
+  _PlanningState createState() => _PlanningState();
+}
+
+class _PlanningState extends State<Planning> {
   @override
   Widget build(BuildContext context) {
-    return new Container(
-        child: new Center(
-            child: new Icon(Icons.accessibility_new,
-                size: 150.0, color: Colors.brown)));
+    MapboxMapController mapController;
+
+    void _onMapCreated(MapboxMapController controller) {
+      mapController = controller;
+    }
+
+    return new Container();
   }
 }
