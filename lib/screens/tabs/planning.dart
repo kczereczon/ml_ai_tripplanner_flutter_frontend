@@ -2,10 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:future_progress_dialog/future_progress_dialog.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:laira/entities/place.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
 
@@ -22,28 +25,28 @@ class _PlanningState extends State<Planning> {
   RadioModel _selectedRadio;
   double _value = 20;
   double _time = 60;
+  List<Place> _routePlaceList = [];
+
+  ProgressDialog progressDialog;
 
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
     _getNearPlaces();
+    progressDialog = new ProgressDialog(context);
 
-    _radioButtons.add(new RadioModel(false, Icons.directions_car, "car"));
-    _radioButtons.add(new RadioModel(false, Icons.directions_bike, "bike"));
-    _radioButtons.add(new RadioModel(true, Icons.directions_walk, "walk"));
+    _radioButtons.add(new RadioModel(false, Icons.directions_car, "driving"));
+    _radioButtons.add(new RadioModel(false, Icons.directions_bike, "cycling"));
+    _radioButtons.add(new RadioModel(true, Icons.directions_walk, "walking"));
 
     _selectedRadio = _radioButtons[2];
   }
 
-  void _getUserLocation() async {
+  Future<Position> _getUserLocation() async {
     await _handlePermission();
     Position position = await _geolocatorPlatform.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
-
-    setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
-    });
+    return position;
   }
 
   Future<bool> _handlePermission() async {
@@ -78,7 +81,7 @@ class _PlanningState extends State<Planning> {
     }
     final List<Place> places = [];
     final response = await http.get(
-        Uri.http('192.168.1.86:3333', '/api/places/around'),
+        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/around'),
         headers: {'auth-token': token});
     if (response.statusCode == 200) {
       var json = jsonDecode(response.body);
@@ -91,6 +94,23 @@ class _PlanningState extends State<Planning> {
     _placeList = places;
   }
 
+  Future<http.Response> _planRoute() async {
+    String token = await storage.read(key: 'jwt');
+    Position position = await _getUserLocation();
+    return await http.post(
+        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/find-route'),
+        headers: <String, String>{
+          'auth-token': token,
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: jsonEncode(<String, dynamic>{
+          "lat": position.latitude,
+          "lon": position.longitude,
+          "distance": (this._value * 1000),
+          "type": this._selectedRadio.name.toString()
+        }));
+  }
+
   @override
   Widget build(BuildContext context) {
     MapboxMapController mapController;
@@ -101,8 +121,7 @@ class _PlanningState extends State<Planning> {
         mapController.addSymbol(
           SymbolOptions(
               geometry: LatLng(place.lon, place.lat),
-              iconImage: 'marker-15',
-              textField: place.name,
+              iconImage: 'attraction-15',
               textSize: 15,
               iconColor: "#00FFFF",
               textOffset: Offset(0, 2)),
@@ -123,19 +142,12 @@ class _PlanningState extends State<Planning> {
       child: Column(
         children: [
           Container(
-              height: 300,
-              child: MapboxMap(
-                styleString: 'mapbox://styles/mapbox/streets-v8',
-                accessToken: "",
-                onMapCreated: _onMapCreated,
-                myLocationEnabled: true,
-                initialCameraPosition: CameraPosition(
-                  target: _initialPosition,
-                  zoom: 14.4746,
-                ),
-              )),
-          Container(
               height: 420,
+              margin: EdgeInsetsDirectional.only(top: 35),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10))),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
@@ -211,6 +223,7 @@ class _PlanningState extends State<Planning> {
                                 thumbShape: RoundSliderThumbShape(
                                     enabledThumbRadius: 10)),
                             child: Slider(
+                              min: 1,
                               max: 150,
                               value: _value,
                               onChanged: (val) {
@@ -252,7 +265,21 @@ class _PlanningState extends State<Planning> {
                         width: MediaQuery.of(context).size.width,
                         height: 50,
                         child: TextButton(
-                          onPressed: () async {},
+                          onPressed: () async {
+                            await progressDialog.show();
+                            try {
+                              http.Response response = await this._planRoute();
+                              print(response.body);
+                              Future.delayed(Duration(seconds: 1));
+                              Map<String, dynamic> map =
+                                  jsonDecode(response.body);
+                              print(map);
+                            } catch (e) {
+                              print(e.message);
+                            } finally {
+                              await progressDialog.hide();
+                            }
+                          },
                           child: Text("Lets find a trip!",
                               style: TextStyle(
                                   color: Colors.white,

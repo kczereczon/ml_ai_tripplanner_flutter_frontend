@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:laira/screens/home.dart';
@@ -28,7 +29,7 @@ class _LoginState extends State<Login> {
 
   Future<http.Response> login() {
     return http.post(
-      Uri.http('192.168.1.86:3333', '/api/user/login'),
+      Uri.http(dotenv.env['API_HOST_IP'], '/api/user/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

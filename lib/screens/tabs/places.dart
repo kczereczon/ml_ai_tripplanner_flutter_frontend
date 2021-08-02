@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/screens/places/detail.dart';
@@ -21,7 +22,7 @@ class _PlacesState extends State<Places> {
     }
     final List<Place> places = [];
     final response = await http.get(
-        Uri.http('192.168.1.86:3333', '/api/places/around'),
+        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/around'),
         headers: {'auth-token': token});
     if (response.statusCode == 200) {
       var json = jsonDecode(response.body);
