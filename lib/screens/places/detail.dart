@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:laira/entities/place.dart';
+
+final storage = new FlutterSecureStorage();
 
 class PlaceDetail extends StatefulWidget {
   final Place place;
 
   final String tag;
-
-
 
   const PlaceDetail({
     Key key,
@@ -20,19 +23,25 @@ class PlaceDetail extends StatefulWidget {
 }
 
 class _PlaceDetailState extends State<PlaceDetail> {
+  void initState() {
+    storage
+        .read(key: 'jwt')
+        .then((token) => http.get(
+            Uri.http(
+                dotenv.env['API_HOST_IP'], '/api/places/' + widget.place.id),
+            headers: {'auth-token': token}))
+        .then((value) => print(value.body));
 
-
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       backgroundColor: Color(0xfff7f7f7),
       body: Container(
-        
         decoration: BoxDecoration(
-                        color: Color(0xfff7f7f7),
+            color: Color(0xfff7f7f7),
             image: DecorationImage(
                 image: NetworkImage(widget.place.photoUrl),
                 fit: BoxFit.fitHeight,
