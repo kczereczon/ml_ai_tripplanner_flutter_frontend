@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:laira/entities/place.dart';
 import 'package:laira/screens/places/detail.dart';
+import 'package:laira/screens/tabs/planning.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 final storage = new FlutterSecureStorage();
@@ -21,7 +22,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
-  MapboxMapController _mapboxMapController;
+  static MapboxMapController _mapboxMapController;
   Map<String, Circle> _circles = {};
 
   bool _selectedPlaceVisable = false;
@@ -173,26 +174,73 @@ class _HomePageState extends State<HomePage>
     final String style = 'mapbox://styles/mapbox/streets-v11';
 
     return new Scaffold(
-        floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.location_pin),
-            onPressed: () => {_setCurrentPositon(_mapboxMapController)}),
         body: Stack(
-          alignment: AlignmentDirectional.topCenter,
-          children: [
-            MapboxMap(
-              styleString: style,
-              accessToken: token,
-              myLocationEnabled: true,
-              onCameraIdle: () => _wasCameraIdle = true,
-              initialCameraPosition: CameraPosition(
-                target: _initialPosition,
-                zoom: 18.0,
+      alignment: AlignmentDirectional.topCenter,
+      children: [
+        MapboxMap(
+          styleString: style,
+          accessToken: token,
+          myLocationEnabled: true,
+          onCameraIdle: () => _wasCameraIdle = true,
+          initialCameraPosition: CameraPosition(
+            target: _initialPosition,
+            zoom: 18.0,
+          ),
+          onMapCreated: _onMapCreated,
+        ),
+        ..._additionalStackWidgets,
+        Positioned(
+            bottom: 50,
+            left: 15,
+            child: Container(
+              height: 50,
+              width: MediaQuery.of(context).size.width - 90,
+              decoration: BoxDecoration(),
+              child: TextButton(
+                onPressed: () async {
+                  Navigator.of(context).restorablePush(_dialogBuilder);
+                },
+                child: Text("Wyznacz trasę",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Color(0xFF70D799),
+                ),
               ),
-              onMapCreated: _onMapCreated,
-            ),
-            ..._additionalStackWidgets
-          ],
-        ));
+            )),
+        Positioned(
+          bottom: 50,
+          right: 15,
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(),
+            child: FloatingActionButton(
+                child: Icon(Icons.location_pin, color: Color(0xFF70D799)),
+                backgroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                onPressed: () => {_setCurrentPositon(_mapboxMapController)}),
+          ),
+        )
+      ],
+    ));
+  }
+
+  static Route<Object> _dialogBuilder(BuildContext context, Object arguments) {
+    return DialogRoute<void>(
+        context: context,
+        builder: (BuildContext context) => Dialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Planning(mapController: _mapboxMapController),
+                ],
+              ),
+            ));
   }
 }
 
@@ -226,10 +274,10 @@ class SuggestedPlaces extends StatelessWidget {
   Widget build(BuildContext context) {
     // SmallPlace(place: , onTap: _onTap),
     return Positioned(
-      top: 208,
+      top: 215,
       child: Container(
-          height: 70,
-          width: MediaQuery.of(context).size.width - 50,
+          height: 110,
+          width: MediaQuery.of(context).size.width,
           child: FutureBuilder(
               future: _getSuggestedPlaces(),
               builder:
@@ -237,7 +285,8 @@ class SuggestedPlaces extends StatelessWidget {
                 if (snapshot.hasData) {
                   List<SmallPlace> places = [];
                   for (Place place in snapshot.data) {
-                    places.add(new SmallPlace(place: place, onTap: _onTap));
+                    places.add(new SmallPlace(
+                        place: place, onTap: _onTap, first: places.isEmpty));
                   }
                   return ListView(
                       scrollDirection: Axis.horizontal, children: places);
@@ -251,36 +300,40 @@ class SuggestedPlaces extends StatelessWidget {
 
 class SmallPlace extends StatelessWidget {
   const SmallPlace(
-      {Key key, @required Place place, @required Function(Place) onTap})
+      {Key key,
+      @required Place place,
+      @required Function(Place) onTap,
+      @required bool first})
       : _place = place,
         _onTap = onTap,
+        _first = first,
         super(key: key);
 
   final Place _place;
   final Function(Place) _onTap;
+  final bool _first;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => {_onTap(_place)},
       child: Padding(
-        padding: const EdgeInsets.only(right: 10.0),
+        padding:
+            EdgeInsets.only(right: 15.0, bottom: 10, left: _first ? 15 : 0),
         child: Container(
             padding: const EdgeInsets.all(5),
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: Image.network(
                   _place.photoUrl,
-                  height: 60,
-                  width: 60,
+                  width: 100,
                   fit: BoxFit.cover,
                 )),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
             ),
-            width: 70,
-            height: 70),
+            width: (MediaQuery.of(context).size.width - 15) / 3 - 15),
       ),
     );
   }
@@ -300,7 +353,7 @@ class SelectedPlaceQuickInfo extends StatelessWidget {
     return Positioned(
       top: 50,
       child: Container(
-        width: MediaQuery.of(context).size.width - 50,
+        width: MediaQuery.of(context).size.width - 30,
         height: 150,
         child: Row(
           children: [
