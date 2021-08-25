@@ -7,14 +7,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:laira/components/selected-place.dart';
+import 'package:laira/components/sugessted-places.dart';
+import 'package:laira/components/suggested-place.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/screens/places/detail.dart';
 import 'package:laira/screens/tabs/planning.dart';
+import 'package:laira/utils/constant.dart';
+import 'package:laira/utils/uses-api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
-final storage = new FlutterSecureStorage();
-
-class HomePage extends StatefulWidget {
+class HomePage extends StatefulWidget with UsesApi {
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -22,17 +25,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
-  static MapboxMapController _mapboxMapController;
+  static MapboxMapController? _mapboxMapController;
   Map<String, Circle> _circles = {};
 
   bool _selectedPlaceVisable = false;
   bool _wasCameraIdle = true;
 
-  Place _selectedPlace = null;
-  Widget _selectedPlaceUi = null;
+  Place? _selectedPlace = null;
+  Widget? _selectedPlaceUi = null;
   List<Widget> _additionalStackWidgets = [];
 
-  List<Place> _placeList;
+  List<Place>? _placeList;
 
   LatLng _initialPosition = LatLng(
     50.3485116,
@@ -77,13 +80,13 @@ class _HomePageState extends State<HomePage>
     _selectedPlace = place;
     setState(() => {
           _additionalStackWidgets.add(
-            new SelectedPlaceQuickInfo(selectedPlace: place),
+            new SelectedPlace(selectedPlace: place),
           ),
           _additionalStackWidgets
               .add(new SuggestedPlaces(onTap: _onSmallPlaceClicked))
         });
-    _getCameraPosition(_mapboxMapController, new LatLng(place.lon, place.lat))
-        .then((animation) => _mapboxMapController.animateCamera(animation));
+    _getCameraPosition(_mapboxMapController!, new LatLng(place.lon, place.lat))
+        .then((animation) => _mapboxMapController!.animateCamera(animation));
   }
 
   void _onMapCreated(MapboxMapController controller) async {
@@ -94,7 +97,10 @@ class _HomePageState extends State<HomePage>
                 _wasCameraIdle = false,
                 _selectedPlace = circle.data['place'],
                 _additionalStackWidgets.add(
-                    new SelectedPlaceQuickInfo(selectedPlace: _selectedPlace)),
+                  new SelectedPlace(
+                    selectedPlace: _selectedPlace!,
+                  ),
+                ),
                 _additionalStackWidgets.add(
                   new SuggestedPlaces(onTap: _onSmallPlaceClicked),
                 )
@@ -151,14 +157,10 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<List<Place>> _getPlaces() async {
-    String token = await storage.read(key: 'jwt');
-    if (token == null) {
-      await Navigator.pushReplacementNamed(context, "/login");
-    }
+    final response = await widget.get("/api/places/all", context: context);
+
     final List<Place> places = [];
-    final response = await http.get(
-        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/all'),
-        headers: {'auth-token': token});
+
     if (response.statusCode == 200) {
       var json = jsonDecode(response.body);
       for (var i = 0; i < json.length; i++) {
@@ -171,6 +173,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget build(BuildContext context) {
+    final String? token = dotenv.env['MAPBOX_API_KEY'];
     final String style = 'mapbox://styles/mapbox/streets-v11';
 
     return new Scaffold(
@@ -206,8 +209,9 @@ class _HomePageState extends State<HomePage>
                         fontSize: 20,
                         fontWeight: FontWeight.w300)),
                 style: TextButton.styleFrom(
-                  backgroundColor: Color(0xFF70D799),
-                ),
+                    backgroundColor: Color(0xFF70D799),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(RADIUS))),
               ),
             )),
         Positioned(
@@ -222,15 +226,16 @@ class _HomePageState extends State<HomePage>
                 backgroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                onPressed: () => {_setCurrentPositon(_mapboxMapController)}),
+                    borderRadius: BorderRadius.circular(RADIUS)),
+                onPressed: () => {_setCurrentPositon(_mapboxMapController!)}),
           ),
         )
       ],
     ));
   }
 
-  static Route<Object> _dialogBuilder(BuildContext context, Object arguments) {
+  static Route<Object?> _dialogBuilder(
+      BuildContext context, Object? arguments) {
     return DialogRoute<void>(
         context: context,
         builder: (BuildContext context) => Dialog(
@@ -241,172 +246,6 @@ class _HomePageState extends State<HomePage>
                 ],
               ),
             ));
-  }
-}
-
-class SuggestedPlaces extends StatelessWidget {
-  const SuggestedPlaces({
-    Key key,
-    @required Function(Place) onTap,
-  })  : _onTap = onTap,
-        super(key: key);
-
-  final Function(Place) _onTap;
-
-  Future<List<Place>> _getSuggestedPlaces() async {
-    String token = await storage.read(key: 'jwt');
-    final List<Place> places = [];
-    final response = await http.get(
-        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/suggested'),
-        headers: {'auth-token': token});
-    if (response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      for (var i = 0; i < json.length; i++) {
-        places.add(Place.parseFromJson(json[i]));
-      }
-    } else {
-      throw Exception('Failed to get http');
-    }
-    return places;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // SmallPlace(place: , onTap: _onTap),
-    return Positioned(
-      top: 215,
-      child: Container(
-          height: 110,
-          width: MediaQuery.of(context).size.width,
-          child: FutureBuilder(
-              future: _getSuggestedPlaces(),
-              builder:
-                  (BuildContext context, AsyncSnapshot<List<Place>> snapshot) {
-                if (snapshot.hasData) {
-                  List<SmallPlace> places = [];
-                  for (Place place in snapshot.data) {
-                    places.add(new SmallPlace(
-                        place: place, onTap: _onTap, first: places.isEmpty));
-                  }
-                  return ListView(
-                      scrollDirection: Axis.horizontal, children: places);
-                } else {
-                  return Container();
-                }
-              })),
-    );
-  }
-}
-
-class SmallPlace extends StatelessWidget {
-  const SmallPlace(
-      {Key key,
-      @required Place place,
-      @required Function(Place) onTap,
-      @required bool first})
-      : _place = place,
-        _onTap = onTap,
-        _first = first,
-        super(key: key);
-
-  final Place _place;
-  final Function(Place) _onTap;
-  final bool _first;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => {_onTap(_place)},
-      child: Padding(
-        padding:
-            EdgeInsets.only(right: 15.0, bottom: 10, left: _first ? 15 : 0),
-        child: Container(
-            padding: const EdgeInsets.all(5),
-            child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                  _place.photoUrl,
-                  width: 100,
-                  fit: BoxFit.cover,
-                )),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-            ),
-            width: (MediaQuery.of(context).size.width - 15) / 3 - 15),
-      ),
-    );
-  }
-}
-
-class SelectedPlaceQuickInfo extends StatelessWidget {
-  const SelectedPlaceQuickInfo({
-    Key key,
-    @required Place selectedPlace,
-  })  : _selectedPlace = selectedPlace,
-        super(key: key);
-
-  final Place _selectedPlace;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 50,
-      child: Container(
-        width: MediaQuery.of(context).size.width - 30,
-        height: 150,
-        child: Row(
-          children: [
-            Hero(
-              tag: _selectedPlace.id,
-              child: InkWell(
-                onTap: () => {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => PlaceDetail(
-                          place: _selectedPlace, tag: _selectedPlace.id)))
-                },
-                child: Container(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.0),
-                    child: Image.network(
-                      _selectedPlace.photoUrl,
-                      height: 140,
-                      width: 140,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  padding: EdgeInsets.all(8),
-                ),
-              ),
-            ),
-            Expanded(
-                child: Padding(
-              padding:
-                  const EdgeInsets.only(left: 5, top: 8, right: 8, bottom: 8),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedPlace.name,
-                      style: TextStyle(
-                          color: Color(0xFF70D799),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22),
-                    ),
-                    Text(
-                      _selectedPlace.address.getAddressOnUi(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal, fontSize: 15),
-                    ),
-                  ]),
-            ))
-          ],
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.white,
-        ),
-      ),
-    );
+    ;
   }
 }

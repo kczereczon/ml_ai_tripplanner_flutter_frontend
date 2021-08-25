@@ -19,7 +19,7 @@ class _LoginState extends State<Login> {
   String password = "";
   String error = "";
 
-  ProgressDialog pr;
+  ProgressDialog? pr;
 
   void _setError(String error) {
     setState(() {
@@ -29,7 +29,7 @@ class _LoginState extends State<Login> {
 
   Future<http.Response> login() {
     return http.post(
-      Uri.http(dotenv.env['API_HOST_IP'], '/api/user/login'),
+      Uri.http(dotenv.env['API_HOST_IP']!, '/api/user/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -119,7 +119,7 @@ class _LoginState extends State<Login> {
               height: 50,
               child: TextButton(
                 onPressed: () async {
-                  await pr.show();
+                  await pr!.show();
                   try {
                     http.Response response = await this.login();
                     print(response.body);
@@ -134,7 +134,7 @@ class _LoginState extends State<Login> {
                   } catch (e) {
                     this._setError("Error occures " + e.toString());
                   } finally {
-                    await pr.hide();
+                    await pr!.hide();
                   }
                 },
                 child: Text("Log in",

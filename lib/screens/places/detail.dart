@@ -1,37 +1,28 @@
-import 'dart:async';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:laira/entities/place.dart';
+import 'package:laira/utils/uses-api.dart';
 
 final storage = new FlutterSecureStorage();
 
-class PlaceDetail extends StatefulWidget {
-  final Place place;
-
-  final String tag;
-
+class PlaceDetail extends StatefulWidget with UsesApi {
   const PlaceDetail({
-    Key key,
+    Key? key,
     this.place,
     this.tag,
   }) : super(key: key);
+
+  final Place? place;
+  final String? tag;
+
   @override
   _PlaceDetailState createState() => _PlaceDetailState();
 }
 
 class _PlaceDetailState extends State<PlaceDetail> {
   void initState() {
-    storage
-        .read(key: 'jwt')
-        .then((token) => http.get(
-            Uri.http(
-                dotenv.env['API_HOST_IP'], '/api/places/' + widget.place.id),
-            headers: {'auth-token': token}))
-        .then((value) => print(value.body));
-
+    widget.get('/api/places/' + widget.place!.id, context: context);
     super.initState();
   }
 
@@ -43,7 +34,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
         decoration: BoxDecoration(
             color: Color(0xfff7f7f7),
             image: DecorationImage(
-                image: NetworkImage(widget.place.photoUrl),
+                image: NetworkImage(widget.place!.photoUrl),
                 fit: BoxFit.fitHeight,
                 alignment: Alignment.topCenter)),
         child: SingleChildScrollView(
@@ -62,19 +53,19 @@ class _PlaceDetailState extends State<PlaceDetail> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.place.name,
+                          widget.place!.name,
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 35),
                         ),
                         Text(
-                          widget.place.address.getAddressOnUi(),
+                          widget.place!.address.getAddressOnUi(),
                           style: TextStyle(
                               fontWeight: FontWeight.w300, fontSize: 23),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 16.0),
                           child: Text(
-                            widget.place.description,
+                            widget.place!.description,
                             style: TextStyle(
                                 fontWeight: FontWeight.w200, fontSize: 18),
                           ),
@@ -82,7 +73,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                         SizedBox(
                           height: 30,
                         ),
-                        widget.place.getRating(20),
+                        widget.place!.getRating(20),
                         SizedBox(
                           height: 10,
                         ),
@@ -100,7 +91,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                       Icons.directions_walk,
                                       size: 30,
                                     ),
-                                    Text(widget.place.walkTime())
+                                    Text(widget.place!.walkTime())
                                   ],
                                 ),
                                 Column(
@@ -109,7 +100,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                       Icons.directions_bike,
                                       size: 30,
                                     ),
-                                    Text(widget.place.bikeTime())
+                                    Text(widget.place!.bikeTime())
                                   ],
                                 ),
                                 Column(
@@ -118,7 +109,7 @@ class _PlaceDetailState extends State<PlaceDetail> {
                                       Icons.directions_car,
                                       size: 30,
                                     ),
-                                    Text(widget.place.carTime())
+                                    Text(widget.place!.carTime())
                                   ],
                                 )
                               ],

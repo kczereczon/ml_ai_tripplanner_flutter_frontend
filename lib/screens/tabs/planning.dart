@@ -2,20 +2,22 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:future_progress_dialog/future_progress_dialog.dart';
+
 import 'package:geolocator/geolocator.dart';
-import 'package:laira/entities/place.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:laira/utils/uses-api.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:mapbox_gl/mapbox_gl.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
 
-class Planning extends StatefulWidget {
-  const Planning({Key key, this.mapController}) : super(key: key);
+class Planning extends StatefulWidget with UsesApi {
+  const Planning({Key? key, this.mapController}) : super(key: key);
 
-  final MapboxMapController mapController;
+  final MapboxMapController? mapController;
 
   @override
   _PlanningState createState() => _PlanningState();
@@ -24,11 +26,11 @@ class Planning extends StatefulWidget {
 class _PlanningState extends State<Planning> {
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   List<RadioModel> _radioButtons = [];
-  RadioModel _selectedRadio;
+  RadioModel? _selectedRadio;
   double _value = 20;
   double _time = 60;
 
-  ProgressDialog progressDialog;
+  ProgressDialog? progressDialog;
 
   @override
   void initState() {
@@ -75,20 +77,17 @@ class _PlanningState extends State<Planning> {
   }
 
   Future<http.Response> _planRoute() async {
-    String token = await storage.read(key: 'jwt');
     Position position = await _getUserLocation();
-    return await http.post(
-        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/find-route'),
-        headers: <String, String>{
-          'auth-token': token,
-          'Content-Type': 'application/json; charset=UTF-8'
-        },
-        body: jsonEncode(<String, dynamic>{
-          "lat": position.latitude,
-          "lon": position.longitude,
-          "distance": (this._value * 1000),
-          "type": this._selectedRadio.name.toString()
-        }));
+
+    Object body = jsonEncode(<String, dynamic>{
+      "lat": position.latitude,
+      "lon": position.longitude,
+      "distance": (this._value * 1000),
+      "type": this._selectedRadio!.name.toString()
+    });
+
+    return await widget.post('/api/places/find-route',
+        context: context, body: body);
   }
 
   @override
@@ -221,13 +220,13 @@ class _PlanningState extends State<Planning> {
               height: 50,
               child: TextButton(
                 onPressed: () async {
-                  await progressDialog.show();
+                  await progressDialog!.show();
                   try {
                     http.Response response = await this._planRoute();
                     print(response.body);
                     Future.delayed(Duration(seconds: 1));
                     Map<String, dynamic> map = jsonDecode(response.body);
-                    print(map);
+
                     var result = null;
 
                     List<LatLng> latLngs = [];
@@ -237,23 +236,24 @@ class _PlanningState extends State<Planning> {
                       latLngs.add(new LatLng(coordinate[1], coordinate[0]));
                     }
 
-                    print(widget.mapController.circles);
+                    print(widget.mapController!.circles);
                     print(latLngs);
 
-                    widget.mapController.lines.clear();
+                    widget.mapController!.lines.clear();
 
-                    await widget.mapController.addLine(LineOptions(
+                    await widget.mapController!.addLine(LineOptions(
                         lineWidth: 10,
                         lineColor: "#9fD799",
                         lineOpacity: 0.8,
                         geometry: latLngs));
 
-                    widget.mapController.animateCamera(CameraUpdate.zoomTo(11));
+                    widget.mapController!
+                        .animateCamera(CameraUpdate.zoomTo(11));
                     Navigator.of(context).pop(result);
                   } catch (e) {
-                    print(e.message);
+                    print(e.toString());
                   } finally {
-                    await progressDialog.hide();
+                    await progressDialog!.hide();
                   }
                 },
                 child: Text("Lets find a trip!",

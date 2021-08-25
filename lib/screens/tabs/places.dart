@@ -6,35 +6,31 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/screens/places/detail.dart';
 import 'package:http/http.dart' as http;
+import 'package:laira/utils/uses-api.dart';
 
 final storage = new FlutterSecureStorage();
 
-class Places extends StatefulWidget {
+class Places extends StatefulWidget with UsesApi {
   @override
   _PlacesState createState() => _PlacesState();
 }
 
 class _PlacesState extends State<Places> {
   Future<List<Place>> getNearPlaces() async {
-    String token = await storage.read(key: 'jwt');
-    if (token == null) {
-      await Navigator.pushReplacementNamed(context, "/login");
-    }
     final List<Place> places = [];
-    final response = await http.get(
-        Uri.http(dotenv.env['API_HOST_IP'], '/api/places/around'),
-        headers: {'auth-token': token});
-    if (response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      for (var i = 0; i < json.length; i++) {
-        places.add(Place.parseFromJson(json[i]));
+
+    try {
+      final response = await widget.get('/api/places/around', context: context);
+      if (response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        for (var i = 0; i < json.length; i++) {
+          places.add(Place.parseFromJson(json[i]));
+        }
       }
-    } else {
-      if (response.statusCode == 401) {
-        return await Navigator.pushReplacementNamed(context, "/login");
-      }
-      throw Exception('Failed to get http');
+    } catch (e) {
+      print(e);
     }
+
     return places;
   }
 
@@ -66,16 +62,16 @@ class _PlacesState extends State<Places> {
 }
 
 class PlacesList extends StatelessWidget {
-  final Future<List<Place>> function;
   const PlacesList({
-    Key key,
+    Key? key,
     // @required this.places,
     this.name,
     this.function,
   }) : super(key: key);
 
   // final List<PlaceCard> places;
-  final String name;
+  final String? name;
+  final Future<List<Place>>? function;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +82,7 @@ class PlacesList extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 13.0, top: 10, bottom: 5),
           child: Text(
-            this.name,
+            this.name!,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
           ),
         ),
@@ -100,7 +96,7 @@ class PlacesList extends StatelessWidget {
                   (BuildContext context, AsyncSnapshot<List<Place>> snapshot) {
                 List<Widget> children = [];
                 if (snapshot.hasData) {
-                  for (Place place in snapshot.data) {
+                  for (Place place in snapshot.data!) {
                     children.add(PlaceCard(place: place));
                   }
                   return Row(children: children);
@@ -119,24 +115,24 @@ class PlacesList extends StatelessWidget {
 }
 
 class HeroCard extends StatelessWidget {
-  const HeroCard({Key key, this.photo, this.onTap, this.width})
+  const HeroCard({Key? key, this.photo, this.onTap, this.width})
       : super(key: key);
 
-  final String photo;
-  final VoidCallback onTap;
-  final double width;
+  final String? photo;
+  final VoidCallback? onTap;
+  final double? width;
 
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
       child: Hero(
-        tag: photo,
+        tag: photo!,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
             child: Image.asset(
-              photo,
+              photo!,
               fit: BoxFit.contain,
             ),
           ),
@@ -147,18 +143,18 @@ class HeroCard extends StatelessWidget {
 }
 
 class PlaceCard extends StatelessWidget {
-  const PlaceCard({Key key, this.place}) : super(key: key);
-  final Place place;
+  const PlaceCard({Key? key, this.place}) : super(key: key);
+  final Place? place;
 
   @override
   Widget build(BuildContext context) {
-    String tag = place.photoUrl + DateTime.now().microsecond.toString();
+    String tag = place!.photoUrl + DateTime.now().microsecond.toString();
     return Container(
       child: Hero(
         tag: tag,
         child: GestureDetector(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => PlaceDetail(place: place, tag: tag))),
+              builder: (context) => PlaceDetail(place: place!, tag: tag))),
           child: Card(
             elevation: 0,
             child: SizedBox(
@@ -172,7 +168,7 @@ class PlaceCard extends StatelessWidget {
                             topLeft: Radius.circular(10),
                             topRight: Radius.circular(10)),
                         child: Image.network(
-                          place.photoUrl,
+                          place!.photoUrl,
                           fit: BoxFit.cover,
                           height: 120,
                           width: 200,
@@ -184,19 +180,19 @@ class PlaceCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                place.name,
+                                place!.name,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                               Text(
-                                place.address.getAddressOnUi(),
+                                place!.address.getAddressOnUi(),
                                 style: TextStyle(
                                     fontWeight: FontWeight.w300, fontSize: 13),
                               ),
                               SizedBox(
                                 height: 30,
                               ),
-                              place.getRating(15),
+                              place!.getRating(15),
                               SizedBox(
                                 height: 10,
                               ),
@@ -206,7 +202,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_walk,
                                     size: 20,
                                   ),
-                                  Text(place.walkTime())
+                                  Text(place!.walkTime())
                                 ],
                               ),
                               Row(
@@ -215,7 +211,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_bike,
                                     size: 20,
                                   ),
-                                  Text(place.bikeTime())
+                                  Text(place!.bikeTime())
                                 ],
                               ),
                               Row(
@@ -224,7 +220,7 @@ class PlaceCard extends StatelessWidget {
                                     Icons.directions_car,
                                     size: 20,
                                   ),
-                                  Text(place.carTime())
+                                  Text(place!.carTime())
                                 ],
                               )
                             ]),
