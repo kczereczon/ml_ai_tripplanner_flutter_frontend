@@ -72,10 +72,11 @@ class Place {
 
   static Place parseFromJson(json) {
     return Place(
-        json['image'],
-        json['name'],
+        json?['image'] ??
+            "https://st.depositphotos.com/1987177/3470/v/600/depositphotos_34700099-stock-illustration-no-photo-available-or-missing.jpg",
+        json?['name'] ?? "brak nazwy",
         json['_id'],
-        json['description'] ?? "Testowy opis",
+        json?['description'] ?? "Testowy opis",
         Address(json['address']['street'], json['address']['number'],
             json['address']['postal_code'], json['address']['city']),
         double.parse(json['distance'].toString()),

@@ -45,7 +45,10 @@ class UsesApi {
     try {
       final response = await http.post(
           Uri.http(dotenv.env['API_HOST_IP']!, url),
-          headers: {'auth-token': await getToken(context)},
+          headers: {
+            'auth-token': await getToken(context),
+            'content-type': 'application/json'
+          },
           body: body);
 
       checkAuth(context, response.statusCode);

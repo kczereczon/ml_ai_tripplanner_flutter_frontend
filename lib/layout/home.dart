@@ -66,28 +66,9 @@ class _HomeLayoutState extends State<HomeLayout> {
         Visibility(child: selectedPlace!, visible: _showSelectedComponent),
         Visibility(
           visible: _showPlanRouteButton,
-          child: Positioned(
-              bottom: 50,
-              left: 15,
-              child: Container(
-                height: 50,
-                width: MediaQuery.of(context).size.width - 90,
-                decoration: BoxDecoration(),
-                child: TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).restorablePush(_dialogBuilder);
-                  },
-                  child: Text("Wyznacz trasę",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w300)),
-                  style: TextButton.styleFrom(
-                      backgroundColor: Color(0xFF70D799),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(RADIUS))),
-                ),
-              )),
+          child: RoutePlanButton(
+            context: context,
+          ),
         ),
         Visibility(
           visible: _showLocationButton,
@@ -120,15 +101,74 @@ class _HomeLayoutState extends State<HomeLayout> {
         });
     map!.moveToLatLon(new LatLng(place.lon, place.lat));
   }
+}
 
-  Route<Object?> _dialogBuilder(BuildContext context, Object? arguments) {
+class RoutePlanButton extends StatelessWidget {
+  RoutePlanButton({
+    Key? key,
+    @required BuildContext? context,
+  })  : _context = context,
+        super(key: key);
+
+  final BuildContext? _context;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        bottom: 50,
+        left: 15,
+        child: Container(
+          height: 50,
+          width: MediaQuery.of(context).size.width - 90,
+          decoration: BoxDecoration(),
+          child: TextButton(
+            onPressed: () async {
+              Navigator.of(_context!).restorablePush(_dialogBuilder);
+            },
+            child: Text("Wyznacz trasę",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300)),
+            style: TextButton.styleFrom(
+                backgroundColor: Color(0xFF70D799),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RADIUS))),
+          ),
+        ));
+  }
+
+  static Route<Object?> _dialogBuilder(
+      BuildContext context, Object? arguments) {
     return DialogRoute<void>(
         context: context,
         builder: (BuildContext context) => Dialog(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Planning(mapController: Map.mapBoxController),
+                  Planning(
+                    mapController: Map.mapBoxController,
+                    onMapPlanned: (List<Place> places) => {
+                      for (Place place in places)
+                        {
+                          Map.mapBoxController!.addCircle(
+                              CircleOptions(
+                                  circleRadius: 10,
+                                  circleColor: DARKER_MAIN_COLOR_STRING,
+                                  circleStrokeColor: "#FFF3F3",
+                                  circleStrokeWidth: 2,
+                                  geometry: new LatLng(place.lon, place.lat)),
+                              {
+                                "lat": place.lat,
+                                "lon": place.lon,
+                                "address": place.address.getAddressOnUi(),
+                                "name": place.name,
+                                "image": place.photoUrl,
+                                "place": place
+                              })
+                        }
+                    },
+                  ),
                 ],
               ),
             ));

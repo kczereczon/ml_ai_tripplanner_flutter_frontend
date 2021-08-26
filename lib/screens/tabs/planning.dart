@@ -6,6 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:laira/components/map.dart' as customMap;
+import 'package:laira/entities/place.dart';
 import 'package:laira/utils/uses-api.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -15,9 +17,11 @@ import 'package:progress_dialog/progress_dialog.dart';
 final storage = new FlutterSecureStorage();
 
 class Planning extends StatefulWidget with UsesApi {
-  const Planning({Key? key, this.mapController}) : super(key: key);
+  const Planning({Key? key, this.mapController, this.onMapPlanned})
+      : super(key: key);
 
   final MapboxMapController? mapController;
+  final Function(List<Place>)? onMapPlanned;
 
   @override
   _PlanningState createState() => _PlanningState();
@@ -86,8 +90,7 @@ class _PlanningState extends State<Planning> {
       "type": this._selectedRadio!.name.toString()
     });
 
-    return await widget.post('/api/places/find-route',
-        context: context, body: body);
+    return widget.post('/api/places/find-route', context: context, body: body);
   }
 
   @override
@@ -223,9 +226,21 @@ class _PlanningState extends State<Planning> {
                   await progressDialog!.show();
                   try {
                     http.Response response = await this._planRoute();
-                    print(response.body);
                     Future.delayed(Duration(seconds: 1));
                     Map<String, dynamic> map = jsonDecode(response.body);
+
+                    widget.mapController!.clearCircles();
+
+                    List<Place> places = [];
+
+                    for (var i = 1;
+                        i < map['response']['waypoints'].length;
+                        i++) {
+                      places.add(Place.parseFromJson(
+                          map['response']['waypoints'][i]['place']));
+                    }
+
+                    widget.onMapPlanned!(places);
 
                     var result = null;
 
@@ -236,10 +251,12 @@ class _PlanningState extends State<Planning> {
                       latLngs.add(new LatLng(coordinate[1], coordinate[0]));
                     }
 
-                    print(widget.mapController!.circles);
-                    print(latLngs);
+                    for (List<dynamic> coordinate in map['geoJson']
+                        ['coordinates']) {
+                      latLngs.add(new LatLng(coordinate[1], coordinate[0]));
+                    }
 
-                    widget.mapController!.lines.clear();
+                    widget.mapController!.clearLines();
 
                     await widget.mapController!.addLine(LineOptions(
                         lineWidth: 10,
@@ -248,10 +265,10 @@ class _PlanningState extends State<Planning> {
                         geometry: latLngs));
 
                     widget.mapController!
-                        .animateCamera(CameraUpdate.zoomTo(11));
+                        .animateCamera(CameraUpdate.zoomTo(14));
                     Navigator.of(context).pop(result);
                   } catch (e) {
-                    print(e.toString());
+                    print("Error: " + e.toString());
                   } finally {
                     await progressDialog!.hide();
                   }

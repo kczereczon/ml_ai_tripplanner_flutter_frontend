@@ -99,8 +99,10 @@ class _MapState extends State<Map> {
 
   void _onMapCreated(MapboxMapController controller) async {
     controller.onCircleTapped.add((Circle circle) {
-      _wasCameraIdle = false;
-      widget.onCirclePressed!(circle);
+      if (circle.data['showInfo']) {
+        _wasCameraIdle = false;
+        widget.onCirclePressed!(circle);
+      }
     });
 
     controller.addListener(() {
@@ -124,7 +126,8 @@ class _MapState extends State<Map> {
             "address": place.address.getAddressOnUi(),
             "name": place.name,
             "image": place.photoUrl,
-            "place": place
+            "place": place,
+            "showInfo": true
           });
 
       // controller.addCircle(options)(SymbolOptions(
