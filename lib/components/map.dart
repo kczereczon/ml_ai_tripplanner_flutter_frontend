@@ -1,0 +1,158 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:laira/entities/place.dart';
+import 'package:laira/utils/uses-api.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
+
+// ignore: must_be_immutable
+class Map extends StatefulWidget with UsesApi {
+  Map({Key? key, this.onCirclePressed, this.onCameraMove, this.onCameraIdle})
+      : super(key: key);
+
+  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+  final Function(Circle)? onCirclePressed;
+  final Function? onCameraMove;
+  final Function? onCameraIdle;
+
+  static MapboxMapController? mapBoxController;
+
+  void setCurrentPositon() async {
+    LatLng newPositon = await _getUserLocation();
+    mapBoxController!
+        .animateCamera(await _getCameraPosition(mapBoxController!, newPositon));
+    mapBoxController!
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.Tracking);
+  }
+
+  void moveToLatLon(LatLng latLng) async {
+    _getCameraPosition(mapBoxController!, latLng)
+        .then((animation) => mapBoxController!.animateCamera(animation));
+  }
+
+  Future<CameraUpdate> _getCameraPosition(
+      MapboxMapController controller, LatLng target) async {
+    CameraPosition position = new CameraPosition(target: target, zoom: 11);
+
+    return CameraUpdate.newCameraPosition(position);
+  }
+
+  Future<LatLng> _getUserLocation() async {
+    await _handlePermission();
+    Position position = await _geolocatorPlatform.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    return new LatLng(position.latitude, position.longitude);
+  }
+
+  Future<bool> _handlePermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return false;
+    }
+
+    permission = await _geolocatorPlatform.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await _geolocatorPlatform.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  _MapState createState() => _MapState();
+}
+
+class _MapState extends State<Map> {
+  final String? token = dotenv.env['MAPBOX_API_KEY'];
+  final String style = 'mapbox://styles/mapbox/streets-v11';
+
+  bool _wasCameraIdle = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MapboxMap(
+      styleString: style,
+      accessToken: token,
+      myLocationEnabled: true,
+      onCameraIdle: () => {widget.onCameraIdle!(), _wasCameraIdle = true},
+      initialCameraPosition: CameraPosition(
+        target: _initialPosition,
+        zoom: 18.0,
+      ),
+      onMapCreated: _onMapCreated,
+    );
+  }
+
+  void _onMapCreated(MapboxMapController controller) async {
+    controller.onCircleTapped.add((Circle circle) {
+      _wasCameraIdle = false;
+      widget.onCirclePressed!(circle);
+    });
+
+    controller.addListener(() {
+      if (controller.isCameraMoving && _wasCameraIdle) {
+        widget.onCameraMove!();
+      }
+    });
+
+    List<Place> places = await _getPlaces();
+    for (Place place in places) {
+      controller.addCircle(
+          CircleOptions(
+              circleRadius: 10,
+              circleColor: "#70D799",
+              circleStrokeColor: "#FFF3F3",
+              circleStrokeWidth: 2,
+              geometry: new LatLng(place.lon, place.lat)),
+          {
+            "lat": place.lat,
+            "lon": place.lon,
+            "address": place.address.getAddressOnUi(),
+            "name": place.name,
+            "image": place.photoUrl,
+            "place": place
+          });
+
+      // controller.addCircle(options)(SymbolOptions(
+      //     iconImage: "pin", geometry: new LatLng(place.lat, place.lon)));
+    }
+
+    Map.mapBoxController = controller;
+    widget.setCurrentPositon();
+  }
+
+  Future<List<Place>> _getPlaces() async {
+    final response = await widget.get("/api/places/all", context: context);
+
+    final List<Place> places = [];
+
+    if (response.statusCode == 200) {
+      var json = jsonDecode(response.body);
+      for (var i = 0; i < json.length; i++) {
+        places.add(Place.parseFromJson(json[i]));
+      }
+    } else {
+      throw Exception('Failed to get http');
+    }
+    return places;
+  }
+
+  LatLng _initialPosition = LatLng(
+    50.3485116,
+    23.333414,
+  );
+}
