@@ -21,7 +21,7 @@ class Planning extends StatefulWidget with UsesApi {
       : super(key: key);
 
   final MapboxMapController? mapController;
-  final Function(List<Place>)? onMapPlanned;
+  final Function(List<Place>, List<LatLng>)? onMapPlanned;
 
   @override
   _PlanningState createState() => _PlanningState();
@@ -233,14 +233,12 @@ class _PlanningState extends State<Planning> {
 
                     List<Place> places = [];
 
-                    for (var i = 1;
+                    for (var i = 0;
                         i < map['response']['waypoints'].length;
                         i++) {
                       places.add(Place.parseFromJson(
                           map['response']['waypoints'][i]['place']));
                     }
-
-                    widget.onMapPlanned!(places);
 
                     var result = null;
 
@@ -256,16 +254,8 @@ class _PlanningState extends State<Planning> {
                       latLngs.add(new LatLng(coordinate[1], coordinate[0]));
                     }
 
-                    widget.mapController!.clearLines();
+                    widget.onMapPlanned!(places, latLngs);
 
-                    await widget.mapController!.addLine(LineOptions(
-                        lineWidth: 10,
-                        lineColor: "#9fD799",
-                        lineOpacity: 0.8,
-                        geometry: latLngs));
-
-                    widget.mapController!
-                        .animateCamera(CameraUpdate.zoomTo(14));
                     Navigator.of(context).pop(result);
                   } catch (e) {
                     print("Error: " + e.toString());

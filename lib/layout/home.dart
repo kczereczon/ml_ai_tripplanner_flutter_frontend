@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laira/components/map.dart';
+import 'package:laira/components/route-plan-places.dart';
 import 'package:laira/components/selected-place.dart';
 import 'package:laira/components/suggested-places.dart';
 import 'package:laira/entities/place.dart';
@@ -15,16 +16,19 @@ class HomeLayout extends StatefulWidget {
 }
 
 class _HomeLayoutState extends State<HomeLayout> {
-  bool _showSelectedComponent = false;
-  bool _showSuggestedComponent = false;
-  bool _showPlanRouteButton = false;
-  bool _showCancelRouteButton = false;
-  bool _showLocationButton = false;
+  static bool _showSelectedComponent = false;
+  static bool _showSuggestedComponent = false;
+  static bool _showPlanRouteButton = false;
+  static bool _showCancelRouteButton = false;
+  static bool _showLocationButton = false;
+  static bool _shorRoutePlannedPlaces = false;
 
   Widget? suggestedPlaces = Container();
   Widget? selectedPlace = Container();
+  static Widget? routePlanPlaces = Container();
   Place? _selectedPlace;
   Map? map;
+  static List<Place> _plannedRoute = [];
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +68,7 @@ class _HomeLayoutState extends State<HomeLayout> {
             }),
         Visibility(child: suggestedPlaces!, visible: _showSuggestedComponent),
         Visibility(child: selectedPlace!, visible: _showSelectedComponent),
+        Visibility(child: routePlanPlaces!, visible: _shorRoutePlannedPlaces),
         Visibility(
           visible: _showPlanRouteButton,
           child: RoutePlanButton(
@@ -148,25 +153,49 @@ class RoutePlanButton extends StatelessWidget {
                 children: [
                   Planning(
                     mapController: Map.mapBoxController,
-                    onMapPlanned: (List<Place> places) => {
-                      for (Place place in places)
-                        {
-                          Map.mapBoxController!.addCircle(
-                              CircleOptions(
-                                  circleRadius: 10,
-                                  circleColor: DARKER_MAIN_COLOR_STRING,
-                                  circleStrokeColor: "#FFF3F3",
-                                  circleStrokeWidth: 2,
-                                  geometry: new LatLng(place.lon, place.lat)),
-                              {
-                                "lat": place.lat,
-                                "lon": place.lon,
-                                "address": place.address.getAddressOnUi(),
-                                "name": place.name,
-                                "image": place.photoUrl,
-                                "place": place
-                              })
-                        }
+                    onMapPlanned: (List<Place> places, List<LatLng> lines) {
+                      Map.mapBoxController!.clearLines();
+                      Map.mapBoxController!.clearCircles();
+                      Map.mapBoxController!.clearSymbols();
+                      Map.mapBoxController!.addLine(LineOptions(
+                          lineWidth: 10,
+                          lineColor: "#9fD799",
+                          lineOpacity: 0.8,
+                          geometry: lines));
+                      Map.mapBoxController!.updateMyLocationTrackingMode(
+                          MyLocationTrackingMode.TrackingCompass);
+                      Map.mapBoxController!
+                          .animateCamera(CameraUpdate.zoomTo(14));
+                      int count = 1;
+                      for (Place place in places) {
+                        _HomeLayoutState._plannedRoute.add(place);
+                        Map.mapBoxController!.addCircle(
+                            CircleOptions(
+                                circleRadius: 10,
+                                circleColor: DARKER_MAIN_COLOR_STRING,
+                                circleStrokeColor: "#FFF3F3",
+                                circleStrokeWidth: 2,
+                                geometry: new LatLng(place.lon, place.lat)),
+                            {
+                              "lat": place.lat,
+                              "lon": place.lon,
+                              "address": place.address.getAddressOnUi(),
+                              "name": place.name,
+                              "image": place.photoUrl,
+                              "place": place,
+                              "distance": place.distance,
+                              "plan": true
+                            });
+                        Map.mapBoxController!.addSymbol(SymbolOptions(
+                            textField: (count++).toString(),
+                            textSize: 15,
+                            textColor: "#FFF3F3",
+                            geometry: new LatLng(place.lon, place.lat)));
+                      }
+                      _HomeLayoutState.routePlanPlaces = new RoutePlanPlaces(
+                        routePlaces: _HomeLayoutState._plannedRoute,
+                      );
+                      _HomeLayoutState._shorRoutePlannedPlaces = true;
                     },
                   ),
                 ],

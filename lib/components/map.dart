@@ -20,22 +20,29 @@ class Map extends StatefulWidget with UsesApi {
 
   static MapboxMapController? mapBoxController;
 
+  static void planRoute(args) {}
+
   void setCurrentPositon() async {
     LatLng newPositon = await _getUserLocation();
-    mapBoxController!
-        .animateCamera(await _getCameraPosition(mapBoxController!, newPositon));
+    mapBoxController!.animateCamera(
+        await _getCameraPosition(mapBoxController!, newPositon, 11));
     mapBoxController!
         .updateMyLocationTrackingMode(MyLocationTrackingMode.Tracking);
   }
 
-  void moveToLatLon(LatLng latLng) async {
-    _getCameraPosition(mapBoxController!, latLng)
+  void moveToLatLon(LatLng latLng, {double zoom = 11}) async {
+    _getCameraPosition(mapBoxController!, latLng, zoom)
         .then((animation) => mapBoxController!.animateCamera(animation));
   }
 
-  Future<CameraUpdate> _getCameraPosition(
-      MapboxMapController controller, LatLng target) async {
-    CameraPosition position = new CameraPosition(target: target, zoom: 11);
+  static void moveToLatLonStatic(LatLng latLng, {double zoom = 11}) async {
+    _getCameraPosition(mapBoxController!, latLng, zoom)
+        .then((animation) => mapBoxController!.animateCamera(animation));
+  }
+
+  static Future<CameraUpdate> _getCameraPosition(
+      MapboxMapController controller, LatLng target, double zoom) async {
+    CameraPosition position = new CameraPosition(target: target, zoom: zoom);
 
     return CameraUpdate.newCameraPosition(position);
   }
@@ -78,7 +85,7 @@ class Map extends StatefulWidget with UsesApi {
 
 class _MapState extends State<Map> {
   final String? token = dotenv.env['MAPBOX_API_KEY'];
-  final String style = 'mapbox://styles/mapbox/streets-v11';
+  final String style = 'mapbox://styles/mapbox/satellite-v9';
 
   bool _wasCameraIdle = false;
 
@@ -88,12 +95,19 @@ class _MapState extends State<Map> {
       styleString: style,
       accessToken: token,
       myLocationEnabled: true,
+      annotationOrder: <AnnotationType>[
+        AnnotationType.fill,
+        AnnotationType.line,
+        AnnotationType.circle,
+        AnnotationType.symbol,
+      ],
       onCameraIdle: () => {widget.onCameraIdle!(), _wasCameraIdle = true},
       initialCameraPosition: CameraPosition(
         target: _initialPosition,
         zoom: 18.0,
       ),
       onMapCreated: _onMapCreated,
+      onStyleLoadedCallback: () => {print('loaded essss')},
     );
   }
 
