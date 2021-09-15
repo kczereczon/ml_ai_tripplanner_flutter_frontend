@@ -85,7 +85,7 @@ class Map extends StatefulWidget with UsesApi {
 
 class _MapState extends State<Map> {
   final String? token = dotenv.env['MAPBOX_API_KEY'];
-  final String style = 'mapbox://styles/mapbox/satellite-v9';
+  final String style = 'mapbox://styles/mapbox/streets-v11';
 
   bool _wasCameraIdle = false;
 

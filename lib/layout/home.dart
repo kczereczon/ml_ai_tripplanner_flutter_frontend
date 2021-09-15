@@ -22,6 +22,7 @@ class _HomeLayoutState extends State<HomeLayout> {
   static bool _showCancelRouteButton = false;
   static bool _showLocationButton = false;
   static bool _shorRoutePlannedPlaces = false;
+  static bool _isRoutePlanned = false;
 
   Widget? suggestedPlaces = Container();
   Widget? selectedPlace = Container();
@@ -55,25 +56,52 @@ class _HomeLayoutState extends State<HomeLayout> {
               if (!_showPlanRouteButton && !_showLocationButton)
                 setState(() => {
                       _showLocationButton = true,
-                      _showPlanRouteButton = true,
+                      if (_isRoutePlanned)
+                        {
+                          _shorRoutePlannedPlaces = true,
+                          _showSuggestedComponent = true,
+                          _showCancelRouteButton = true,
+                        }
+                      else
+                        {
+                          if (_selectedPlace != null)
+                            {_shorRoutePlannedPlaces = true},
+                          _showPlanRouteButton = true,
+                        }
                     });
             },
             onCameraMove: () {
               setState(() => {
+                    _shorRoutePlannedPlaces = false,
                     _showSelectedComponent = false,
                     _showSuggestedComponent = false,
                     _showLocationButton = false,
                     _showPlanRouteButton = false,
+                    _showCancelRouteButton = false,
                   });
             }),
         Visibility(child: suggestedPlaces!, visible: _showSuggestedComponent),
         Visibility(child: selectedPlace!, visible: _showSelectedComponent),
         Visibility(child: routePlanPlaces!, visible: _shorRoutePlannedPlaces),
         Visibility(
-          visible: _showPlanRouteButton,
-          child: RoutePlanButton(
-            context: context,
-          ),
+            visible: _showPlanRouteButton,
+            child: RoutePlanButton(context: context)),
+        Visibility(
+          visible: _showCancelRouteButton,
+          child: RouteCancelButton(
+              context: context,
+              onClick: () => {
+                    setState(() => {
+                          _showPlanRouteButton = true,
+                          _showCancelRouteButton = false,
+                          _showSuggestedComponent = false,
+                          _shorRoutePlannedPlaces = false,
+                          _isRoutePlanned = false,
+                          Map.mapBoxController!.clearCircles(),
+                          Map.mapBoxController!.clearSymbols(),
+                          Map.mapBoxController!.clearLines()
+                        })
+                  }),
         ),
         Visibility(
           visible: _showLocationButton,
@@ -109,10 +137,8 @@ class _HomeLayoutState extends State<HomeLayout> {
 }
 
 class RoutePlanButton extends StatelessWidget {
-  RoutePlanButton({
-    Key? key,
-    @required BuildContext? context,
-  })  : _context = context,
+  RoutePlanButton({Key? key, @required BuildContext? context})
+      : _context = context,
         super(key: key);
 
   final BuildContext? _context;
@@ -148,6 +174,8 @@ class RoutePlanButton extends StatelessWidget {
     return DialogRoute<void>(
         context: context,
         builder: (BuildContext context) => Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(RADIUS))),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -195,12 +223,53 @@ class RoutePlanButton extends StatelessWidget {
                       _HomeLayoutState.routePlanPlaces = new RoutePlanPlaces(
                         routePlaces: _HomeLayoutState._plannedRoute,
                       );
+                      _HomeLayoutState._showPlanRouteButton = false;
                       _HomeLayoutState._shorRoutePlannedPlaces = true;
+                      _HomeLayoutState._showSuggestedComponent = true;
+                      _HomeLayoutState._showCancelRouteButton = true;
+                      _HomeLayoutState._isRoutePlanned = true;
                     },
                   ),
                 ],
               ),
             ));
     ;
+  }
+}
+
+class RouteCancelButton extends StatelessWidget {
+  RouteCancelButton(
+      {Key? key, @required BuildContext? context, @required Function? onClick})
+      : _context = context,
+        _onClick = onClick,
+        super(key: key);
+
+  final BuildContext? _context;
+  final Function? _onClick;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        bottom: 50,
+        left: 15,
+        child: Container(
+          height: 50,
+          width: MediaQuery.of(context).size.width - 90,
+          decoration: BoxDecoration(),
+          child: TextButton(
+            onPressed: () async {
+              _onClick!();
+            },
+            child: Text("Anuluj trasę",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300)),
+            style: TextButton.styleFrom(
+                backgroundColor: Color(0xFFc44240),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RADIUS))),
+          ),
+        ));
   }
 }
