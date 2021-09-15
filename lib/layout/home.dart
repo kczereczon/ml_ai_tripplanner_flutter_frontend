@@ -75,7 +75,11 @@ class _HomeLayoutState extends State<HomeLayout> {
         Visibility(child: routePlanPlaces!, visible: _shorRoutePlannedPlaces),
         Visibility(
             visible: _showPlanRouteButton,
-            child: RoutePlanButton(context: context)),
+            child: RoutePlanButton(
+                context: context,
+                onSuccess: () {
+                  setState(() {});
+                })),
         Visibility(
           visible: _showCancelRouteButton,
           child: RouteCancelButton(
@@ -128,11 +132,16 @@ class _HomeLayoutState extends State<HomeLayout> {
 }
 
 class RoutePlanButton extends StatelessWidget {
-  RoutePlanButton({Key? key, @required BuildContext? context})
+  RoutePlanButton(
+      {Key? key,
+      @required BuildContext? context,
+      @required Function? onSuccess})
       : _context = context,
+        _onSuccess = onSuccess,
         super(key: key);
 
   final BuildContext? _context;
+  final Function? _onSuccess;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +154,77 @@ class RoutePlanButton extends StatelessWidget {
           decoration: BoxDecoration(),
           child: TextButton(
             onPressed: () async {
-              Navigator.of(_context!).restorablePush(_dialogBuilder);
+              String result = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) => Dialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(RADIUS))),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Planning(
+                              mapController: Map.mapBoxController,
+                              onMapPlanned:
+                                  (List<Place> places, List<LatLng> lines) {
+                                Map.mapBoxController!.clearLines();
+                                Map.mapBoxController!.clearCircles();
+                                Map.mapBoxController!.clearSymbols();
+                                Map.mapBoxController!.symbols.clear();
+                                Map.mapBoxController!.addLine(LineOptions(
+                                    lineWidth: 10,
+                                    lineColor: "#9fD799",
+                                    lineOpacity: 0.8,
+                                    geometry: lines));
+                                Map.mapBoxController!
+                                    .updateMyLocationTrackingMode(
+                                        MyLocationTrackingMode.TrackingCompass);
+                                Map.mapBoxController!
+                                    .animateCamera(CameraUpdate.zoomTo(14));
+                                int count = 1;
+                                for (Place place in places) {
+                                  _HomeLayoutState._plannedRoute.add(place);
+                                  Map.mapBoxController!.addCircle(
+                                      CircleOptions(
+                                          circleRadius: 10,
+                                          circleColor: DARKER_MAIN_COLOR_STRING,
+                                          circleStrokeColor: "#FFF3F3",
+                                          circleStrokeWidth: 2,
+                                          geometry:
+                                              new LatLng(place.lon, place.lat)),
+                                      {
+                                        "lat": place.lat,
+                                        "lon": place.lon,
+                                        "address":
+                                            place.address.getAddressOnUi(),
+                                        "name": place.name,
+                                        "image": place.photoUrl,
+                                        "place": place,
+                                        "distance": place.distance,
+                                        "plan": true
+                                      });
+                                  Map.mapBoxController!.addSymbol(SymbolOptions(
+                                      textField: (count++).toString(),
+                                      textSize: 15,
+                                      textColor: "#FFF3F3",
+                                      geometry:
+                                          new LatLng(place.lon, place.lat)));
+                                }
+                                _HomeLayoutState.routePlanPlaces =
+                                    new RoutePlanPlaces(
+                                  routePlaces: _HomeLayoutState._plannedRoute,
+                                );
+                                _HomeLayoutState._showPlanRouteButton = false;
+                                _HomeLayoutState._shorRoutePlannedPlaces = true;
+                                _HomeLayoutState._showSuggestedComponent = true;
+                                _HomeLayoutState._showCancelRouteButton = true;
+                                _HomeLayoutState._isRoutePlanned = true;
+                              },
+                            ),
+                          ],
+                        ),
+                      ));
+              _onSuccess!();
             },
             child: Text("Wyznacz trasę",
                 style: TextStyle(
@@ -158,74 +237,6 @@ class RoutePlanButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(RADIUS))),
           ),
         ));
-  }
-
-  static Route<Object?> _dialogBuilder(
-      BuildContext context, Object? arguments) {
-    return DialogRoute<void>(
-        context: context,
-        builder: (BuildContext context) => Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(RADIUS))),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Planning(
-                    mapController: Map.mapBoxController,
-                    onMapPlanned: (List<Place> places, List<LatLng> lines) {
-                      Map.mapBoxController!.clearLines();
-                      Map.mapBoxController!.clearCircles();
-                      Map.mapBoxController!.clearSymbols();
-                      Map.mapBoxController!.symbols.clear();
-                      Map.mapBoxController!.addLine(LineOptions(
-                          lineWidth: 10,
-                          lineColor: "#9fD799",
-                          lineOpacity: 0.8,
-                          geometry: lines));
-                      Map.mapBoxController!.updateMyLocationTrackingMode(
-                          MyLocationTrackingMode.TrackingCompass);
-                      Map.mapBoxController!
-                          .animateCamera(CameraUpdate.zoomTo(14));
-                      int count = 1;
-                      for (Place place in places) {
-                        _HomeLayoutState._plannedRoute.add(place);
-                        Map.mapBoxController!.addCircle(
-                            CircleOptions(
-                                circleRadius: 10,
-                                circleColor: DARKER_MAIN_COLOR_STRING,
-                                circleStrokeColor: "#FFF3F3",
-                                circleStrokeWidth: 2,
-                                geometry: new LatLng(place.lon, place.lat)),
-                            {
-                              "lat": place.lat,
-                              "lon": place.lon,
-                              "address": place.address.getAddressOnUi(),
-                              "name": place.name,
-                              "image": place.photoUrl,
-                              "place": place,
-                              "distance": place.distance,
-                              "plan": true
-                            });
-                        Map.mapBoxController!.addSymbol(SymbolOptions(
-                            textField: (count++).toString(),
-                            textSize: 15,
-                            textColor: "#FFF3F3",
-                            geometry: new LatLng(place.lon, place.lat)));
-                      }
-                      _HomeLayoutState.routePlanPlaces = new RoutePlanPlaces(
-                        routePlaces: _HomeLayoutState._plannedRoute,
-                      );
-                      _HomeLayoutState._showPlanRouteButton = false;
-                      _HomeLayoutState._shorRoutePlannedPlaces = true;
-                      _HomeLayoutState._showSuggestedComponent = true;
-                      _HomeLayoutState._showCancelRouteButton = true;
-                      _HomeLayoutState._isRoutePlanned = true;
-                    },
-                  ),
-                ],
-              ),
-            ));
-    ;
   }
 }
 

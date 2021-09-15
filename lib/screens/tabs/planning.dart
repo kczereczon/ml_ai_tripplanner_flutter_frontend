@@ -256,9 +256,11 @@ class _PlanningState extends State<Planning> {
 
                     widget.onMapPlanned!(places, latLngs);
 
-                    Navigator.of(context).pop(result);
+                    print('eloo1');
+                    Navigator.pop(context, 'success');
                   } catch (e) {
                     print("Error: " + e.toString());
+                    Navigator.pop(context, 'error');
                   } finally {
                     await progressDialog!.hide();
                   }
