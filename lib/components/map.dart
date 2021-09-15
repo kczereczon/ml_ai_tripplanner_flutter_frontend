@@ -18,6 +18,7 @@ class Map extends StatefulWidget with UsesApi {
   final Function? onCameraMove;
   final Function? onCameraIdle;
 
+  static bool? disableUi = true;
   static MapboxMapController? mapBoxController;
 
   static void planRoute(args) {}

@@ -38,48 +38,38 @@ class _HomeLayoutState extends State<HomeLayout> {
       alignment: AlignmentDirectional.topCenter,
       children: [
         map = Map(
-            onCirclePressed: (Circle circle) async => {
-                  setState(() => {
-                        _showSelectedComponent = true,
-                        _showSuggestedComponent = true,
-                        _selectedPlace = circle.data['place'],
-                        selectedPlace = new SelectedPlace(
-                          selectedPlace: _selectedPlace!,
-                        ),
-                        suggestedPlaces =
-                            new SuggestedPlaces(onTap: _onSmallPlaceClicked),
-                        map!.moveToLatLon(
-                            new LatLng(circle.data['lon'], circle.data['lat']))
-                      })
-                },
-            onCameraIdle: () {
-              if (!_showPlanRouteButton && !_showLocationButton)
-                setState(() => {
-                      _showLocationButton = true,
-                      if (_isRoutePlanned)
-                        {
-                          _shorRoutePlannedPlaces = true,
-                          _showSuggestedComponent = true,
-                          _showCancelRouteButton = true,
-                        }
-                      else
-                        {
-                          if (_selectedPlace != null)
-                            {_shorRoutePlannedPlaces = true},
-                          _showPlanRouteButton = true,
-                        }
-                    });
-            },
-            onCameraMove: () {
+          onCirclePressed: (Circle circle) async => {
+            setState(() => {
+                  _showSelectedComponent = true,
+                  _showSuggestedComponent = true,
+                  _selectedPlace = circle.data['place'],
+                  selectedPlace = new SelectedPlace(
+                    selectedPlace: _selectedPlace!,
+                  ),
+                  suggestedPlaces =
+                      new SuggestedPlaces(onTap: _onSmallPlaceClicked),
+                  map!.moveToLatLon(
+                      new LatLng(circle.data['lon'], circle.data['lat']))
+                })
+          },
+          onCameraIdle: () {
+            if (!_showPlanRouteButton && !_showLocationButton)
               setState(() => {
-                    _shorRoutePlannedPlaces = false,
-                    _showSelectedComponent = false,
-                    _showSuggestedComponent = false,
-                    _showLocationButton = false,
-                    _showPlanRouteButton = false,
-                    _showCancelRouteButton = false,
+                    _showLocationButton = true,
+                    if (_isRoutePlanned)
+                      {
+                        _shorRoutePlannedPlaces = true,
+                        _showCancelRouteButton = true,
+                      }
+                    else
+                      {
+                        if (_selectedPlace != null)
+                          {_shorRoutePlannedPlaces = true},
+                        _showPlanRouteButton = true,
+                      }
                   });
-            }),
+          },
+        ),
         Visibility(child: suggestedPlaces!, visible: _showSuggestedComponent),
         Visibility(child: selectedPlace!, visible: _showSelectedComponent),
         Visibility(child: routePlanPlaces!, visible: _shorRoutePlannedPlaces),
@@ -99,7 +89,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                           _isRoutePlanned = false,
                           Map.mapBoxController!.clearCircles(),
                           Map.mapBoxController!.clearSymbols(),
-                          Map.mapBoxController!.clearLines()
+                          Map.mapBoxController!.clearLines(),
+                          Map.mapBoxController!.symbols.clear(),
                         })
                   }),
         ),
@@ -185,6 +176,7 @@ class RoutePlanButton extends StatelessWidget {
                       Map.mapBoxController!.clearLines();
                       Map.mapBoxController!.clearCircles();
                       Map.mapBoxController!.clearSymbols();
+                      Map.mapBoxController!.symbols.clear();
                       Map.mapBoxController!.addLine(LineOptions(
                           lineWidth: 10,
                           lineColor: "#9fD799",

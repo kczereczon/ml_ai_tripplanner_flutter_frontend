@@ -6,7 +6,7 @@ import 'package:laira/screens/places/detail.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
-class RoutePlanPlaces extends StatelessWidget {
+class RoutePlanPlaces extends StatefulWidget {
   const RoutePlanPlaces({
     Key? key,
     @required List<Place>? routePlaces,
@@ -16,32 +16,52 @@ class RoutePlanPlaces extends StatelessWidget {
   final List<Place>? _routePlaces;
 
   @override
+  _RoutePlanPlacesState createState() => _RoutePlanPlacesState();
+}
+
+class _RoutePlanPlacesState extends State<RoutePlanPlaces> {
+  int _index = 0;
+
+  @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 50,
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: 150,
-        child: ListView.builder(
-            itemCount: _routePlaces!.length,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, i) => InkWell(
-                onTap: () => {
-                      Map.moveToLatLonStatic(
-                          new LatLng(_routePlaces!.elementAt(i).lon,
-                              _routePlaces!.elementAt(i).lat),
-                          zoom: 16)
-                    },
-                child: Container(
-                    child: SelectedPlace(
-                      selectedPlace: _routePlaces!.elementAt(i),
-                    ),
-                    margin: EdgeInsets.only(left: MARGIN_HOME_LAYOUT),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(RADIUS),
-                      color: Colors.white,
-                    )))),
-      ),
-    );
+        top: 50,
+        child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: 150,
+            child: PageView.builder(
+              itemCount: widget._routePlaces!.length,
+              scrollDirection: Axis.horizontal,
+              controller: PageController(viewportFraction: 0.8),
+              onPageChanged: (int index) => setState(() => {
+                    _index = index,
+                    Map.disableUi = false,
+                    Map.moveToLatLonStatic(
+                        new LatLng(widget._routePlaces!.elementAt(index).lon,
+                            widget._routePlaces!.elementAt(index).lat),
+                        zoom: 10)
+                  }),
+              itemBuilder: (context, i) => Transform.scale(
+                scale: i == _index ? 1 : 0.9,
+                child: InkWell(
+                    onTap: () => {
+                          Map.moveToLatLonStatic(
+                              new LatLng(widget._routePlaces!.elementAt(i).lon,
+                                  widget._routePlaces!.elementAt(i).lat),
+                              zoom: 16)
+                        },
+                    child: Container(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width - 30),
+                        child: SelectedPlace(
+                          selectedPlace: widget._routePlaces!.elementAt(i),
+                        ),
+                        margin: EdgeInsets.only(),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(RADIUS),
+                          color: Colors.white,
+                        ))),
+              ),
+            )));
   }
 }
