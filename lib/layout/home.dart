@@ -45,6 +45,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _selectedPlace = circle.data['place'],
                   selectedPlace = new SelectedPlace(
                     selectedPlace: _selectedPlace!,
+                    offset: 0,
                   ),
                   suggestedPlaces =
                       new SuggestedPlaces(onTap: _onSmallPlaceClicked),
@@ -127,7 +128,7 @@ class _HomeLayoutState extends State<HomeLayout> {
           selectedPlace = new SelectedPlace(selectedPlace: place),
           suggestedPlaces = new SuggestedPlaces(onTap: _onSmallPlaceClicked)
         });
-    map!.moveToLatLon(new LatLng(place.lon, place.lat));
+    map!.moveToLatLon(new LatLng(place.lon, place.lat), zoom: 15);
   }
 }
 

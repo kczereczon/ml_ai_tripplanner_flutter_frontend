@@ -84,7 +84,7 @@ class Map extends StatefulWidget with UsesApi {
   _MapState createState() => _MapState();
 }
 
-class _MapState extends State<Map> {
+class _MapState extends State<Map> with UsesApi {
   final String? token = dotenv.env['MAPBOX_API_KEY'];
   final String style = 'mapbox://styles/mapbox/streets-v11';
 
@@ -154,6 +154,10 @@ class _MapState extends State<Map> {
   }
 
   Future<List<Place>> _getPlaces() async {
+    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
+    await post("/api/user/location",
+        body: {"lat": position.latitude, "lon": position.longitude});
+
     final response = await widget.get("/api/places/all", context: context);
 
     final List<Place> places = [];

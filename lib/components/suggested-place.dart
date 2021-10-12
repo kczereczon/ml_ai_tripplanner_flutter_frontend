@@ -24,7 +24,7 @@ class SmallPlace extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.only(
             right: MARGIN_HOME_LAYOUT,
-            bottom: 10,
+            bottom: 50,
             left: _first! ? MARGIN_HOME_LAYOUT : 0),
         child: Container(
             padding: const EdgeInsets.all(5),

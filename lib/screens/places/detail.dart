@@ -201,19 +201,6 @@ class _PlaceDetailState extends State<PlaceDetail> {
                 ),
               )),
         ),
-
-        // body: Column(
-        //   children: [
-        //     Hero(
-        //       tag: widget.tag,
-        //       child: Image.network(
-        //         widget.place.photoUrl,
-        //         fit: BoxFit.cover,
-        //       ),
-        //     ),
-        //
-        //   ],
-        // ),
       ),
     );
   }

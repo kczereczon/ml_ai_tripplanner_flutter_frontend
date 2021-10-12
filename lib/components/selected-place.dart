@@ -18,9 +18,9 @@ class SelectedPlace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 50,
+      bottom: 120,
       child: SizedBox(
-        width: MediaQuery.of(context).size.width - 100 - _offset,
+        width: MediaQuery.of(context).size.width - 30 - _offset,
         child: Container(
           child: Row(
             children: [
@@ -51,7 +51,7 @@ class SelectedPlace extends StatelessWidget {
                 padding:
                     const EdgeInsets.only(left: 5, top: 8, right: 8, bottom: 8),
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         _selectedPlace!.name,

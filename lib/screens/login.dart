@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:laira/screens/home.dart';
+import 'package:laira/utils/uses-api.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
@@ -14,7 +16,7 @@ class Login extends StatefulWidget {
   _LoginState createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<Login> with UsesApi {
   String email = "";
   String password = "";
   String error = "";
@@ -129,6 +131,12 @@ class _LoginState extends State<Login> {
                       this._setError(map['error']);
                     } else {
                       await storage.write(key: 'jwt', value: map['jwt']);
+                      Position position = await GeolocatorPlatform.instance
+                          .getCurrentPosition();
+                      await post("/api/user/location", body: {
+                        "lat": position.latitude,
+                        "lon": position.longitude
+                      });
                       await Navigator.pushReplacementNamed(context, "/home");
                     }
                   } catch (e) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:laira/components/suggested-place.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/utils/uses-api.dart';
@@ -17,6 +18,10 @@ class SuggestedPlaces extends StatelessWidget with UsesApi {
   Future<List<Place>> _getSuggestedPlaces() async {
     final List<Place> places = [];
     try {
+      Position position =
+          await GeolocatorPlatform.instance.getCurrentPosition();
+      await post("/api/user/location",
+          body: {"lat": position.latitude, "lon": position.longitude});
       final response = await get("/api/places/suggested");
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
@@ -34,7 +39,7 @@ class SuggestedPlaces extends StatelessWidget with UsesApi {
   Widget build(BuildContext context) {
     // SmallPlace(place: , onTap: _onTap),
     return Positioned(
-      top: 215,
+      bottom: 240,
       child: Container(
           height: 110,
           width: MediaQuery.of(context).size.width,
