@@ -48,9 +48,14 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _selectedPlace = circle.data['place'],
                   Map.putHighlightCircle(
                       circle.data['lat'], circle.data['lon']),
-                  selectedPlace = new SelectedPlace(
-                    selectedPlace: _selectedPlace!,
-                    offset: 0,
+                  selectedPlace = new Positioned(
+                    bottom: 120,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width - 30,
+                      child: SelectedPlace(
+                        selectedPlace: _selectedPlace!,
+                      ),
+                    ),
                   ),
                   suggestedPlaces =
                       new SuggestedPlaces(onTap: _onSmallPlaceClicked),

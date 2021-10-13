@@ -56,8 +56,6 @@ class _RoutePlanPlacesState extends State<RoutePlanPlaces> {
                               zoom: 16)
                         },
                     child: Container(
-                        constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width - 30),
                         child: SelectedPlace(
                           selectedPlace: widget._routePlaces!.elementAt(i),
                         ),

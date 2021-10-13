@@ -17,63 +17,58 @@ class SelectedPlace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 120,
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width - 30 - _offset,
-        child: Container(
-          child: Row(
-            children: [
-              Hero(
-                tag: _selectedPlace!.id,
-                child: InkWell(
-                  onTap: () => {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => PlaceDetail(
-                            place: _selectedPlace, tag: _selectedPlace!.id)))
-                  },
-                  child: Container(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(RADIUS),
-                      child: Image.network(
-                        _selectedPlace!.photoUrl,
-                        height: 140,
-                        width: 140,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    padding: EdgeInsets.all(8),
+    return Container(
+      child: Row(
+        children: [
+          Hero(
+            tag: _selectedPlace!.id,
+            child: InkWell(
+              onTap: () => {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => PlaceDetail(
+                        place: _selectedPlace, tag: _selectedPlace!.id)))
+              },
+              child: Container(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(RADIUS),
+                  child: Image.network(
+                    _selectedPlace!.photoUrl,
+                    height: 140,
+                    width: 140,
+                    fit: BoxFit.cover,
                   ),
                 ),
+                padding: EdgeInsets.all(8),
               ),
-              Expanded(
-                  child: Padding(
-                padding:
-                    const EdgeInsets.only(left: 5, top: 8, right: 8, bottom: 8),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _selectedPlace!.name,
-                        style: TextStyle(
-                            color: Color(0xFF70D799),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22),
-                      ),
-                      Text(
-                        _selectedPlace!.address.getAddressOnUi(),
-                        style: TextStyle(
-                            fontWeight: FontWeight.normal, fontSize: 15),
-                      ),
-                    ]),
-              ))
-            ],
+            ),
           ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(RADIUS),
-            color: Colors.white,
-          ),
-        ),
+          Expanded(
+              child: Padding(
+            padding:
+                const EdgeInsets.only(left: 5, top: 8, right: 8, bottom: 8),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(
+                _selectedPlace!.name,
+                style: TextStyle(
+                    color: Color(0xFF70D799),
+                    fontWeight: FontWeight.bold,
+                    fontSize:
+                        _selectedPlace!.name.toString().characters.length > 15
+                            ? 15
+                            : 22),
+              ),
+              Text(
+                _selectedPlace!.address.getAddressOnUi(),
+                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 15),
+              ),
+            ]),
+          ))
+        ],
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(RADIUS),
+        color: Colors.white,
       ),
     );
   }
