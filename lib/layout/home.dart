@@ -45,6 +45,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _showSelectedComponent = true,
                   _showSuggestedComponent = true,
                   _selectedPlace = circle.data['place'],
+                  Map.putHighlightCircle(
+                      circle.data['lat'], circle.data['lon']),
                   selectedPlace = new SelectedPlace(
                     selectedPlace: _selectedPlace!,
                     offset: 0,
@@ -98,9 +100,13 @@ class _HomeLayoutState extends State<HomeLayout> {
                       _shorRoutePlannedPlaces = false;
                       _isRoutePlanned = false;
                       Map.mapBoxController!.clearCircles();
-                      Map.mapBoxController!.clearSymbols();
+                      Map.mapBoxController!
+                          .removeSymbols(Map.mapBoxController!.symbols);
                       Map.mapBoxController!.clearLines();
                       Map.mapBoxController!.symbols.clear();
+
+                      Map.mapBoxController!.updateMyLocationTrackingMode(
+                          MyLocationTrackingMode.Tracking);
 
                       ProgressDialog pd = new ProgressDialog(context);
                       pd.show();
@@ -122,7 +128,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                                       "name": place.name,
                                       "image": place.photoUrl,
                                       "place": place,
-                                      "showInfo": true
+                                      "showInfo": true,
+                                      "marker": false
                                     })
                               },
                             pd.hide(),
@@ -155,6 +162,7 @@ class _HomeLayoutState extends State<HomeLayout> {
 
   void _onSmallPlaceClicked(place) {
     _selectedPlace = place;
+    Map.putHighlightCircle(place.lat, place.lon);
     setState(() => {
           selectedPlace = new SelectedPlace(selectedPlace: place),
           suggestedPlaces = new SuggestedPlaces(onTap: _onSmallPlaceClicked)
@@ -199,9 +207,11 @@ class RoutePlanButton extends StatelessWidget {
                               mapController: Map.mapBoxController,
                               onMapPlanned:
                                   (List<Place> places, List<LatLng> lines) {
+                                _HomeLayoutState._plannedRoute.clear();
                                 Map.mapBoxController!.clearLines();
                                 Map.mapBoxController!.clearCircles();
-                                Map.mapBoxController!.clearSymbols();
+                                Map.mapBoxController!.removeSymbols(
+                                    Map.mapBoxController!.symbols);
                                 Map.mapBoxController!.symbols.clear();
                                 Map.mapBoxController!.addLine(LineOptions(
                                     lineWidth: 10,
@@ -233,7 +243,8 @@ class RoutePlanButton extends StatelessWidget {
                                         "image": place.photoUrl,
                                         "place": place,
                                         "distance": place.distance,
-                                        "plan": true
+                                        "plan": true,
+                                        "marker": false
                                       });
                                   Map.mapBoxController!.addSymbol(SymbolOptions(
                                       textField: (count++).toString(),

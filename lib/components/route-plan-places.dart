@@ -36,6 +36,11 @@ class _RoutePlanPlacesState extends State<RoutePlanPlaces> {
               onPageChanged: (int index) => setState(() => {
                     _index = index,
                     Map.disableUi = false,
+                    Map.mapBoxController!.updateMyLocationTrackingMode(
+                        MyLocationTrackingMode.None),
+                    Map.putHighlightCircle(
+                        widget._routePlaces!.elementAt(index).lat,
+                        widget._routePlaces!.elementAt(index).lon),
                     Map.moveToLatLonStatic(
                         new LatLng(widget._routePlaces!.elementAt(index).lon,
                             widget._routePlaces!.elementAt(index).lat),

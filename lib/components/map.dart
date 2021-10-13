@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:laira/composables/Places.dart';
 import 'package:laira/entities/place.dart';
+import 'package:laira/utils/constant.dart';
 import 'package:laira/utils/uses-api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
@@ -29,7 +30,7 @@ class Map extends StatefulWidget with UsesApi {
     mapBoxController!.animateCamera(
         await _getCameraPosition(mapBoxController!, newPositon, 11));
     mapBoxController!
-        .updateMyLocationTrackingMode(MyLocationTrackingMode.Tracking);
+        .updateMyLocationTrackingMode(MyLocationTrackingMode.TrackingCompass);
   }
 
   void moveToLatLon(LatLng latLng, {double zoom = 11}) async {
@@ -79,6 +80,22 @@ class Map extends StatefulWidget with UsesApi {
       return false;
     }
     return true;
+  }
+
+  static void putHighlightCircle(lat, lon) {
+    if (Map.mapBoxController!.circles.last.data['marker']) {
+      Map.mapBoxController!.removeCircle(Map.mapBoxController!.circles.last);
+    }
+    Map.mapBoxController?.addCircle(
+      CircleOptions(
+          circleRadius: 13,
+          circleOpacity: 0,
+          circleColor: "transparent",
+          circleStrokeColor: DARK_COLOR_STRING,
+          circleStrokeWidth: 2,
+          geometry: new LatLng(lon, lat)),
+      {"marker": true},
+    );
   }
 
   @override
