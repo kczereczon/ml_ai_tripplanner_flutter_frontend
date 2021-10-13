@@ -133,7 +133,7 @@ class _LoginState extends State<Login> with UsesApi {
                       await storage.write(key: 'jwt', value: map['jwt']);
                       Position position = await GeolocatorPlatform.instance
                           .getCurrentPosition();
-                      await post("/api/user/location", body: {
+                      await UsesApi.post("/api/user/location", body: {
                         "lat": position.latitude,
                         "lon": position.longitude
                       });

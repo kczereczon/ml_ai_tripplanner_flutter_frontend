@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:laira/composables/Places.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/utils/uses-api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -126,7 +127,7 @@ class _MapState extends State<Map> with UsesApi {
       }
     });
 
-    List<Place> places = await _getPlaces();
+    List<Place> places = await Placess.getPlace();
     for (Place place in places) {
       controller.addCircle(
           CircleOptions(
@@ -151,26 +152,6 @@ class _MapState extends State<Map> with UsesApi {
 
     Map.mapBoxController = controller;
     widget.setCurrentPositon();
-  }
-
-  Future<List<Place>> _getPlaces() async {
-    Position position = await GeolocatorPlatform.instance.getCurrentPosition();
-    await post("/api/user/location",
-        body: {"lat": position.latitude, "lon": position.longitude});
-
-    final response = await widget.get("/api/places/all", context: context);
-
-    final List<Place> places = [];
-
-    if (response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      for (var i = 0; i < json.length; i++) {
-        places.add(Place.parseFromJson(json[i]));
-      }
-    } else {
-      throw Exception('Failed to get http');
-    }
-    return places;
   }
 
   LatLng _initialPosition = LatLng(

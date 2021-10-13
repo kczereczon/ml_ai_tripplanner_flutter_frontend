@@ -6,7 +6,7 @@ import 'package:laira/utils/uses-api.dart';
 
 final storage = new FlutterSecureStorage();
 
-class PlaceDetail extends StatefulWidget with UsesApi {
+class PlaceDetail extends StatefulWidget {
   const PlaceDetail({
     Key? key,
     this.place,
@@ -22,7 +22,7 @@ class PlaceDetail extends StatefulWidget with UsesApi {
 
 class _PlaceDetailState extends State<PlaceDetail> {
   void initState() {
-    widget.get('/api/places/' + widget.place!.id, context: context);
+    UsesApi.get('/api/places/' + widget.place!.id, context: context);
     super.initState();
   }
 

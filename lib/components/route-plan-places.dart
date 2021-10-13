@@ -39,7 +39,7 @@ class _RoutePlanPlacesState extends State<RoutePlanPlaces> {
                     Map.moveToLatLonStatic(
                         new LatLng(widget._routePlaces!.elementAt(index).lon,
                             widget._routePlaces!.elementAt(index).lat),
-                        zoom: 10)
+                        zoom: 15)
                   }),
               itemBuilder: (context, i) => Transform.scale(
                 scale: i == _index ? 1 : 0.9,

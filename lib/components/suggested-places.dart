@@ -6,7 +6,7 @@ import 'package:laira/components/suggested-place.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/utils/uses-api.dart';
 
-class SuggestedPlaces extends StatelessWidget with UsesApi {
+class SuggestedPlaces extends StatelessWidget {
   SuggestedPlaces({
     Key? key,
     @required Function(Place)? onTap,
@@ -20,9 +20,9 @@ class SuggestedPlaces extends StatelessWidget with UsesApi {
     try {
       Position position =
           await GeolocatorPlatform.instance.getCurrentPosition();
-      await post("/api/user/location",
+      await UsesApi.post("/api/user/location",
           body: {"lat": position.latitude, "lon": position.longitude});
-      final response = await get("/api/places/suggested");
+      final response = await UsesApi.get("/api/places/suggested");
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
         for (var i = 0; i < json.length; i++) {

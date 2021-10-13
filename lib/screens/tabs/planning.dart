@@ -16,7 +16,7 @@ import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
 
-class Planning extends StatefulWidget with UsesApi {
+class Planning extends StatefulWidget {
   const Planning({Key? key, this.mapController, this.onMapPlanned})
       : super(key: key);
 
@@ -83,14 +83,14 @@ class _PlanningState extends State<Planning> {
   Future<http.Response> _planRoute() async {
     Position position = await _getUserLocation();
 
-    Object body = jsonEncode(<String, dynamic>{
+    Object body = <String, dynamic>{
       "lat": position.latitude,
       "lon": position.longitude,
       "distance": (this._value * 1000),
       "type": this._selectedRadio!.name.toString()
-    });
+    };
 
-    return widget.post('/api/places/find-route', context: context, body: body);
+    return UsesApi.post('/api/places/find-route', context: context, body: body);
   }
 
   @override

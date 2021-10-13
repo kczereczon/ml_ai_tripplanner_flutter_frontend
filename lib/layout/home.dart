@@ -3,10 +3,12 @@ import 'package:laira/components/map.dart';
 import 'package:laira/components/route-plan-places.dart';
 import 'package:laira/components/selected-place.dart';
 import 'package:laira/components/suggested-places.dart';
+import 'package:laira/composables/Places.dart';
 import 'package:laira/entities/place.dart';
 import 'package:laira/screens/tabs/planning.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({Key? key}) : super(key: key);
@@ -79,24 +81,53 @@ class _HomeLayoutState extends State<HomeLayout> {
             child: RoutePlanButton(
                 context: context,
                 onSuccess: () {
-                  setState(() {});
+                  setState(() => {
+                        _showSuggestedComponent = false,
+                        _showSelectedComponent = false,
+                      });
                 })),
         Visibility(
           visible: _showCancelRouteButton,
           child: RouteCancelButton(
               context: context,
               onClick: () => {
-                    setState(() => {
-                          _showPlanRouteButton = true,
-                          _showCancelRouteButton = false,
-                          _showSuggestedComponent = false,
-                          _shorRoutePlannedPlaces = false,
-                          _isRoutePlanned = false,
-                          Map.mapBoxController!.clearCircles(),
-                          Map.mapBoxController!.clearSymbols(),
-                          Map.mapBoxController!.clearLines(),
-                          Map.mapBoxController!.symbols.clear(),
-                        })
+                    setState(() {
+                      _showPlanRouteButton = true;
+                      _showCancelRouteButton = false;
+                      _showSuggestedComponent = false;
+                      _shorRoutePlannedPlaces = false;
+                      _isRoutePlanned = false;
+                      Map.mapBoxController!.clearCircles();
+                      Map.mapBoxController!.clearSymbols();
+                      Map.mapBoxController!.clearLines();
+                      Map.mapBoxController!.symbols.clear();
+
+                      ProgressDialog pd = new ProgressDialog(context);
+                      pd.show();
+                      Placess.getPlace().then((places) async => {
+                            for (Place place in places)
+                              {
+                                Map.mapBoxController?.addCircle(
+                                    CircleOptions(
+                                        circleRadius: 10,
+                                        circleColor: "#70D799",
+                                        circleStrokeColor: "#FFF3F3",
+                                        circleStrokeWidth: 2,
+                                        geometry:
+                                            new LatLng(place.lon, place.lat)),
+                                    {
+                                      "lat": place.lat,
+                                      "lon": place.lon,
+                                      "address": place.address.getAddressOnUi(),
+                                      "name": place.name,
+                                      "image": place.photoUrl,
+                                      "place": place,
+                                      "showInfo": true
+                                    })
+                              },
+                            pd.hide(),
+                          });
+                    })
                   }),
         ),
         Visibility(
@@ -217,7 +248,9 @@ class RoutePlanButton extends StatelessWidget {
                                 );
                                 _HomeLayoutState._showPlanRouteButton = false;
                                 _HomeLayoutState._shorRoutePlannedPlaces = true;
-                                _HomeLayoutState._showSuggestedComponent = true;
+                                _HomeLayoutState._showSuggestedComponent =
+                                    false;
+                                _HomeLayoutState._showSelectedComponent = false;
                                 _HomeLayoutState._showCancelRouteButton = true;
                                 _HomeLayoutState._isRoutePlanned = true;
                               },
