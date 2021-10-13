@@ -17,7 +17,7 @@ class Map extends StatefulWidget with UsesApi {
 
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   final Function(Circle)? onCirclePressed;
-  final Function? onCameraMove;
+  Function? onCameraMove = () {};
   final Function? onCameraIdle;
 
   static bool? disableUi = true;

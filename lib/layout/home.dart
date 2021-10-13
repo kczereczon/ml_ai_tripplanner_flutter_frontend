@@ -40,6 +40,7 @@ class _HomeLayoutState extends State<HomeLayout> {
       alignment: AlignmentDirectional.topCenter,
       children: [
         map = Map(
+          onCameraMove: () {},
           onCirclePressed: (Circle circle) async => {
             setState(() => {
                   _showSelectedComponent = true,
