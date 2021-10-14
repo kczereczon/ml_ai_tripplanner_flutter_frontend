@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:laira/screens/home.dart';
+import 'package:laira/utils/constant.dart';
 import 'package:laira/utils/uses-api.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 
@@ -59,7 +60,7 @@ class _LoginState extends State<Login> with UsesApi {
                       style: TextStyle(
                           fontSize: 60,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF189AB4))),
+                          color: Color(MAIN_COLOR_ALPHA))),
                   Text("Your travel starts here",
                       style:
                           TextStyle(fontSize: 30, fontWeight: FontWeight.w200)),
@@ -75,7 +76,7 @@ class _LoginState extends State<Login> with UsesApi {
                 filled: true,
                 fillColor: Colors.white,
                 hintText: "Email",
-                prefixIcon: Icon(Icons.person),
+                prefixIcon: Icon(Icons.person, color: Color(MAIN_COLOR_ALPHA)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
@@ -93,7 +94,7 @@ class _LoginState extends State<Login> with UsesApi {
                 filled: true,
                 fillColor: Colors.white,
                 hintText: "Password",
-                prefixIcon: Icon(Icons.lock),
+                prefixIcon: Icon(Icons.lock, color: Color(MAIN_COLOR_ALPHA)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
@@ -130,7 +131,7 @@ class _LoginState extends State<Login> with UsesApi {
                     if (response.statusCode != 200) {
                       this._setError(map['error']);
                     } else {
-                      await storage.write(key: 'jwt', value: map['jwt']);
+                      await storage.write(key: 'jwtLaira', value: map['jwt']);
                       Position position = await GeolocatorPlatform.instance
                           .getCurrentPosition();
                       await UsesApi.post("/api/user/location", body: {
@@ -151,7 +152,7 @@ class _LoginState extends State<Login> with UsesApi {
                         fontSize: 20,
                         fontWeight: FontWeight.w300)),
                 style: TextButton.styleFrom(
-                  backgroundColor: Color(0xFF189AB4),
+                  backgroundColor: Color(MAIN_COLOR_ALPHA),
                 ),
               ),
             )

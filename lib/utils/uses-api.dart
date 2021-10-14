@@ -8,9 +8,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 final storage = new FlutterSecureStorage();
 
 class UsesApi {
-  static Future<http.Response> get(String url, {BuildContext? context}) async {
+  static Future<http.Response> get(String url,
+      {BuildContext? context, Map<String, dynamic>? query}) async {
     try {
-      final response = await http.get(Uri.http(dotenv.env['API_HOST_IP']!, url),
+      final response = await http.get(
+          Uri.http(dotenv.env['API_HOST_IP']!, url, query),
           headers: {'auth-token': await getToken(context)});
 
       if (response.statusCode == 401 && context != null) {
@@ -24,7 +26,7 @@ class UsesApi {
   }
 
   static Future<String> getToken(BuildContext? context) async {
-    String? token = await storage.read(key: 'jwt');
+    String? token = await storage.read(key: 'jwtLaira');
 
     if (token == null && context != null) {
       await Navigator.pushReplacementNamed(context, "/login");
