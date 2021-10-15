@@ -170,7 +170,14 @@ class _HomeLayoutState extends State<HomeLayout> {
     _selectedPlace = place;
     Map.putHighlightCircle(place.lat, place.lon);
     setState(() => {
-          selectedPlace = new SelectedPlace(selectedPlace: place),
+          selectedPlace = new Positioned(
+              bottom: 120,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width - 30,
+                child: SelectedPlace(
+                  selectedPlace: place!,
+                ),
+              )),
           suggestedPlaces = new SuggestedPlaces(onTap: _onSmallPlaceClicked)
         });
     map!.moveToLatLon(new LatLng(place.lon, place.lat), zoom: 15);

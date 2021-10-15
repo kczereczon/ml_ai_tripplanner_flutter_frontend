@@ -83,7 +83,7 @@ class Map extends StatefulWidget with UsesApi {
   }
 
   static void putHighlightCircle(lat, lon) {
-    if (Map.mapBoxController!.circles.last.data['marker']) {
+    if (Map.mapBoxController!.circles.last.data['marker'] != null) {
       Map.mapBoxController!.removeCircle(Map.mapBoxController!.circles.last);
     }
     Map.mapBoxController?.addCircle(
