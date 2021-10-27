@@ -83,7 +83,7 @@ class Map extends StatefulWidget with UsesApi {
   }
 
   static void putHighlightCircle(lat, lon) {
-    if (Map.mapBoxController!.circles.last.data['marker'] != null) {
+    if (Map.mapBoxController!.circles.last.data!['marker'] != null) {
       Map.mapBoxController!.removeCircle(Map.mapBoxController!.circles.last);
     }
     Map.mapBoxController?.addCircle(
@@ -132,7 +132,7 @@ class _MapState extends State<Map> with UsesApi {
 
   void _onMapCreated(MapboxMapController controller) async {
     controller.onCircleTapped.add((Circle circle) {
-      if (circle.data['showInfo']) {
+      if (circle.data!['showInfo']) {
         _wasCameraIdle = false;
         widget.onCirclePressed!(circle);
       }

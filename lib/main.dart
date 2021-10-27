@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(primaryColor: Color(MAIN_COLOR_ALPHA)),
-        home: Login(),
+        home: HomePage(),
         routes: {
           '/login': (context) => Login(),
           '/new-place': (context) => NewPlace(),

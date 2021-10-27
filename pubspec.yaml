@@ -26,15 +26,14 @@ dependencies:
   http: ^0.13.3
   progress_dialog: ^1.1.0+1
   flutter_secure_storage: ^4.2.0
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  mapbox_gl: ^0.12.0
+  mapbox_gl: ^0.13.0
   geolocator: ^7.3.0
   flutter_dotenv: ^5.0.0
   future_progress_dialog: ^0.2.0
+  image_picker: ^0.8.4
+  image_picker_platform_interface: ^2.4.1
+  mime: ^1.0.1
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:laira/utils/uses-api.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class NewPlace extends StatefulWidget {
   const NewPlace({Key? key}) : super(key: key);
@@ -23,13 +27,21 @@ class _NewPlaceState extends State<NewPlace> {
   String city = "";
   String country = "";
   String state = "";
+  String description = "";
 
   final String? token = dotenv.env['MAPBOX_API_KEY'];
   final String style = 'mapbox://styles/mapbox/streets-v11';
 
   MapboxMapController? controller = null;
 
-  set lat(double lat) {}
+  final ImagePicker _picker = new ImagePicker();
+
+  List<XFile> _imageFileList = [];
+
+  String? _pickImageError;
+
+  double lat = 0.0;
+  double lon = 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +73,7 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 5,
               ),
               TextField(
-                onChanged: (name) => this.name = name,
+                onChanged: (name) => setState(() => this.name = name),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -84,7 +96,8 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 5,
               ),
               TextField(
-                onChanged: (name) => this.name = name,
+                onChanged: (description) =>
+                    setState(() => this.description = description),
                 maxLines: 10,
                 decoration: InputDecoration(
                   filled: true,
@@ -161,6 +174,10 @@ class _NewPlaceState extends State<NewPlace> {
                             onMapClick: (Point point, LatLng latLng) async {
                               double lat = latLng.latitude;
                               double lon = latLng.longitude;
+
+                              this.lat = lat;
+                              this.lon = lon;
+
                               try {
                                 Response response = await UsesApi.get(
                                     "/api/places/address/geocode",
@@ -251,10 +268,247 @@ class _NewPlaceState extends State<NewPlace> {
             ],
           ),
         ),
-        Center(
-          child: Text('Third Page'),
-        )
+        Padding(
+          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 40,
+              ),
+              Text(
+                "Potrzebujemy zdjęć tego miejsca!",
+                style: TextStyle(fontSize: 30),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              TextButton(
+                  onPressed: () async {
+                    try {
+                      final XFile? photo =
+                          await _picker.pickImage(source: ImageSource.camera);
+                      setState(() =>
+                          {_imageFileList.clear(), _imageFileList.add(photo!)});
+                    } catch (e) {
+                      setState(() {
+                        _pickImageError = e.toString();
+                      });
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 20),
+                      Text("Aparat",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300)),
+                    ],
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Color(LIGHTER_MAIN_COLOR_ALPHA),
+                  )),
+              TextButton(
+                  onPressed: () async {
+                    try {
+                      final XFile? photo =
+                          await _picker.pickImage(source: ImageSource.gallery);
+                      setState(() =>
+                          {_imageFileList.clear(), _imageFileList.add(photo!)});
+                    } catch (e) {
+                      setState(() {
+                        _pickImageError = e.toString();
+                      });
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.photo_album,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 20),
+                      Text("Galeria",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300)),
+                    ],
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Color(LIGHTER_MAIN_COLOR_ALPHA),
+                  )),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Visibility(
+                  visible: _imageFileList.length > 0,
+                  child: TextButton(
+                      onPressed: () => {
+                            controller.nextPage(
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.ease),
+                          },
+                      child: Text("Dalej",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300)),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color(MAIN_COLOR_ALPHA),
+                      )),
+                ),
+              ),
+              Expanded(child: _previewImages())
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 40,
+              ),
+              Text(
+                "Podsumowanie 😍",
+                style: TextStyle(fontSize: 30),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Nazwa miejsca",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(name,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Opis",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(description,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Ulica",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(street,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Kod pocztow",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(postCode,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Miasto",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(city,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Województwo",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(state,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Zdjęcie",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Expanded(child: _previewImages()),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Visibility(
+                  visible: _imageFileList.length > 0,
+                  child: TextButton(
+                      onPressed: () async {
+                        ProgressDialog pd = new ProgressDialog(context);
+                        pd.show();
+                        try {
+                          Response? response = await UsesApi.multiPartPost(
+                              '/api/places', File(_imageFileList[0].path),
+                              body: {
+                                "name": name,
+                                "description": description,
+                                "lat": lat.toString(),
+                                "lon": lon.toString(),
+                                "street": street,
+                                "postal_code": postCode,
+                                "city": city,
+                              });
+                          if (response!.statusCode == 200) {
+                            Navigator.pop(context);
+                          }
+                        } catch (e) {} finally {
+                          pd.hide();
+                        }
+                      },
+                      child: Text("Zapisz 💾",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w300)),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color(MAIN_COLOR_ALPHA),
+                      )),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     ));
+  }
+
+  Widget _previewImages() {
+    if (_imageFileList.length > 0) {
+      return Semantics(
+          child: ListView.builder(
+            key: UniqueKey(),
+            itemBuilder: (context, index) {
+              // Why network for web?
+              // See https://pub.dev/packages/image_picker#getting-ready-for-the-web-platform
+              return Semantics(
+                label: 'image_picker_example_picked_image',
+                child: Image.file(File(_imageFileList[index].path)),
+              );
+            },
+            itemCount: _imageFileList.length,
+          ),
+          label: 'image_picker_example_picked_images');
+    } else if (_pickImageError != null) {
+      return Text(
+        'Pick image error: $_pickImageError',
+        textAlign: TextAlign.center,
+      );
+    } else {
+      return const Text(
+        'Tutaj pojawi się wybrane zdjęcie.',
+        textAlign: TextAlign.center,
+      );
+    }
   }
 }

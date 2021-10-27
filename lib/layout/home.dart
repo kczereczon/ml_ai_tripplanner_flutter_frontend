@@ -45,9 +45,9 @@ class _HomeLayoutState extends State<HomeLayout> {
             setState(() => {
                   _showSelectedComponent = true,
                   _showSuggestedComponent = true,
-                  _selectedPlace = circle.data['place'],
+                  _selectedPlace = circle.data!['place'],
                   Map.putHighlightCircle(
-                      circle.data['lat'], circle.data['lon']),
+                      circle.data!['lat'], circle.data!['lon']),
                   selectedPlace = new Positioned(
                     bottom: 120,
                     child: SizedBox(
@@ -60,7 +60,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                   suggestedPlaces =
                       new SuggestedPlaces(onTap: _onSmallPlaceClicked),
                   map!.moveToLatLon(
-                      new LatLng(circle.data['lon'], circle.data['lat']))
+                      new LatLng(circle.data!['lon'], circle.data!['lat']))
                 })
           },
           onCameraIdle: () {
@@ -159,6 +159,26 @@ class _HomeLayoutState extends State<HomeLayout> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(RADIUS)),
                   onPressed: () => {map!.setCurrentPositon()}),
+            ),
+          ),
+        ),
+        Visibility(
+          visible: _showLocationButton,
+          child: Positioned(
+            top: 50,
+            right: 15,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(),
+              child: FloatingActionButton(
+                  child: Icon(Icons.add, color: Color(0xFF70D799)),
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(RADIUS)),
+                  onPressed: () =>
+                      {Navigator.pushNamed(context, '/new-place')}),
             ),
           ),
         )
