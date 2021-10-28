@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
@@ -43,6 +44,9 @@ class _NewPlaceState extends State<NewPlace> {
   double lat = 0.0;
   double lon = 0.0;
 
+  bool _nameInvalid = false;
+  bool _descriptionInvalid = false;
+
   @override
   Widget build(BuildContext context) {
     final PageController controller = PageController(initialPage: 0);
@@ -61,7 +65,7 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 40,
               ),
               Text(
-                "Opowiedz o nowym miejscu",
+                "Opowiedz o nowym miejscu 🤩",
                 style: TextStyle(fontSize: 30),
               ),
               SizedBox(
@@ -73,11 +77,14 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 5,
               ),
               TextField(
+                textCapitalization: TextCapitalization.words,
                 onChanged: (name) => setState(() => this.name = name),
+                inputFormatters: [],
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  hintText: "Obelisk w lesie",
+                  errorText: _nameInvalid ? "Musisz uzupełnić nazwę!" : null,
+                  hintText: "Tutaj powinna znaleźć się nazwa obiektu.",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -88,7 +95,7 @@ class _NewPlaceState extends State<NewPlace> {
                 ),
               ),
               SizedBox(
-                height: 20,
+                height: 10,
               ),
               Text("Opis",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -96,14 +103,17 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 5,
               ),
               TextField(
+                textCapitalization: TextCapitalization.sentences,
                 onChanged: (description) =>
                     setState(() => this.description = description),
-                maxLines: 10,
+                maxLines: 6,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
+                  errorText:
+                      _descriptionInvalid ? "Musisz uzupełnić opis!" : null,
                   hintText:
-                      "Wielki mityczny kamień osadzony przez legendarnego ...",
+                      "Opisz w kilku zdaniach co można znaleźć w nowymi miejscu",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -113,15 +123,37 @@ class _NewPlaceState extends State<NewPlace> {
                   ),
                 ),
               ),
+              SizedBox(height: 10),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: TextButton(
                     onPressed: () => {
-                          controller.nextPage(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.ease),
+                          setState(() => {
+                                _nameInvalid = false,
+                                _descriptionInvalid = false,
+                              }),
+                          if (name.isEmpty)
+                            {
+                              setState(() => {
+                                    _nameInvalid = true,
+                                  })
+                            }
+                          else if (description.isEmpty)
+                            {
+                              setState(() => {
+                                    _descriptionInvalid = true,
+                                  })
+                            }
+                          else
+                            {
+                              SystemChannels.textInput
+                                  .invokeMethod('TextInput.hide'),
+                              controller.nextPage(
+                                  duration: Duration(milliseconds: 100),
+                                  curve: Curves.ease),
+                            }
                         },
-                    child: Text("Dalej",
+                    child: Text("Dalej 🥳",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -142,7 +174,7 @@ class _NewPlaceState extends State<NewPlace> {
                 height: 40,
               ),
               Text(
-                "Pokaż nam gdzie ono się znajduje ",
+                "Wskaż na mapie gdzie możemy znaleźć to miejsce 🧐",
                 style: TextStyle(fontSize: 30),
               ),
               SizedBox(
@@ -165,77 +197,17 @@ class _NewPlaceState extends State<NewPlace> {
                       final position = snapshot.data;
                       return Container(
                         width: MediaQuery.of(context).size.width,
-                        height: 400,
+                        height: 300,
                         child: MapboxMap(
                             styleString: style,
                             accessToken: token,
-                            onMapCreated: (MapboxMapController controller) =>
-                                this.controller = controller,
-                            onMapClick: (Point point, LatLng latLng) async {
-                              double lat = latLng.latitude;
-                              double lon = latLng.longitude;
-
-                              this.lat = lat;
-                              this.lon = lon;
-
-                              try {
-                                Response response = await UsesApi.get(
-                                    "/api/places/address/geocode",
-                                    query: {
-                                      "lat": lat.toStringAsFixed(6),
-                                      "lon": lon.toStringAsFixed(6)
-                                    });
-                                Map<String, dynamic> data =
-                                    jsonDecode(response.body);
-                                List<dynamic> features =
-                                    data["response"]["features"];
-                                Map<String, dynamic> address = features[0];
-
-                                setState(() {
-                                  this.street = address['text'] +
-                                      " " +
-                                      address["relevance"].toString();
-                                });
-
-                                for (Map<String, dynamic> object
-                                    in address["context"]) {
-                                  print(object["id"].toString().split(".")[0]);
-                                  setState(() {
-                                    if (object["id"].toString().split(".")[0] ==
-                                        "postcode") {
-                                      this.postCode =
-                                          object["text"].toString().trim();
-                                    }
-                                    if (object["id"].toString().split(".")[0] ==
-                                        "place") {
-                                      this.city =
-                                          object["text"].toString().trim();
-                                    }
-                                    if (object["id"].toString().split(".")[0] ==
-                                        "region") {
-                                      this.state =
-                                          object["text"].toString().trim();
-                                    }
-                                    if (object["id"].toString().split(".")[0] ==
-                                        "country") {
-                                      this.country =
-                                          object["text"].toString().trim();
-                                    }
-                                  });
-                                }
-                              } catch (exception) {
-                                print(exception.toString());
-                              }
-
-                              this.controller!.clearCircles();
-                              this.controller!.addCircle(CircleOptions(
-                                    geometry: latLng,
-                                    circleRadius: 10,
-                                    circleColor: "#70D799",
-                                    circleStrokeColor: "#FFF3F3",
-                                    circleStrokeWidth: 2,
-                                  ));
-                            },
+                            onMapCreated: (MapboxMapController controller) => {
+                                  this.controller = controller,
+                                  _getAddress(LatLng(
+                                      position!.latitude, position.longitude))
+                                },
+                            onMapClick: (Point point, LatLng latlon) =>
+                                {_getAddress(latlon)},
                             initialCameraPosition: CameraPosition(
                                 zoom: 15,
                                 target: new LatLng(
@@ -245,9 +217,29 @@ class _NewPlaceState extends State<NewPlace> {
                       );
                     }
                   }),
-              Text("Address",
+              Text("Adres",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text("$street \n $postCode $city\n $state, $country"),
+              Text("Ulica",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(street,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Kod pocztow",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(postCode,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
+              SizedBox(
+                height: 5,
+              ),
+              Text("Miasto",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(city,
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: TextButton(
@@ -460,7 +452,7 @@ class _NewPlaceState extends State<NewPlace> {
                                 "city": city,
                               });
                           if (response!.statusCode == 200) {
-                            Navigator.pop(context);
+                            Navigator.pop(context, true);
                           }
                         } catch (e) {} finally {
                           pd.hide();
@@ -481,6 +473,58 @@ class _NewPlaceState extends State<NewPlace> {
         ),
       ],
     ));
+  }
+
+  void _getAddress(LatLng latLng) async {
+    double lat = latLng.latitude;
+    double lon = latLng.longitude;
+
+    this.lat = lat;
+    this.lon = lon;
+
+    try {
+      Response response = await UsesApi.get("/api/places/address/geocode",
+          query: {
+            "lat": lat.toStringAsFixed(6),
+            "lon": lon.toStringAsFixed(6)
+          });
+      Map<String, dynamic> data = jsonDecode(response.body);
+      List<dynamic> features = data["response"]["features"];
+      Map<String, dynamic> address = features[0];
+
+      setState(() {
+        this.street = address['text'] + " " + address["relevance"].toString();
+      });
+
+      for (Map<String, dynamic> object in address["context"]) {
+        print(object["id"].toString().split(".")[0]);
+        setState(() {
+          if (object["id"].toString().split(".")[0] == "postcode") {
+            this.postCode = object["text"].toString().trim();
+          }
+          if (object["id"].toString().split(".")[0] == "place") {
+            this.city = object["text"].toString().trim();
+          }
+          if (object["id"].toString().split(".")[0] == "region") {
+            this.state = object["text"].toString().trim();
+          }
+          if (object["id"].toString().split(".")[0] == "country") {
+            this.country = object["text"].toString().trim();
+          }
+        });
+      }
+    } catch (exception) {
+      print(exception.toString());
+    }
+
+    this.controller!.clearCircles();
+    this.controller!.addCircle(CircleOptions(
+          geometry: latLng,
+          circleRadius: 10,
+          circleColor: "#70D799",
+          circleStrokeColor: "#FFF3F3",
+          circleStrokeWidth: 2,
+        ));
   }
 
   Widget _previewImages() {

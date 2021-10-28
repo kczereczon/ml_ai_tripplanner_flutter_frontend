@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:laira/components/map.dart';
 import 'package:laira/components/route-plan-places.dart';
 import 'package:laira/components/selected-place.dart';
@@ -25,6 +26,7 @@ class _HomeLayoutState extends State<HomeLayout> {
   static bool _showLocationButton = false;
   static bool _shorRoutePlannedPlaces = false;
   static bool _isRoutePlanned = false;
+  static bool _showNewPlaceButton = true;
 
   Widget? suggestedPlaces = Container();
   Widget? selectedPlace = Container();
@@ -39,48 +41,64 @@ class _HomeLayoutState extends State<HomeLayout> {
         body: Stack(
       alignment: AlignmentDirectional.topCenter,
       children: [
-        map = Map(
-          onCameraMove: () {},
-          onCirclePressed: (Circle circle) async => {
-            setState(() => {
-                  _showSelectedComponent = true,
-                  _showSuggestedComponent = true,
-                  _selectedPlace = circle.data!['place'],
-                  Map.putHighlightCircle(
-                      circle.data!['lat'], circle.data!['lon']),
-                  selectedPlace = new Positioned(
-                    bottom: 120,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width - 30,
-                      child: SelectedPlace(
-                        selectedPlace: _selectedPlace!,
-                      ),
-                    ),
-                  ),
-                  suggestedPlaces =
-                      new SuggestedPlaces(onTap: _onSmallPlaceClicked),
-                  map!.moveToLatLon(
-                      new LatLng(circle.data!['lon'], circle.data!['lat']))
-                })
-          },
-          onCameraIdle: () {
-            if (!_showPlanRouteButton && !_showLocationButton)
-              setState(() => {
-                    _showLocationButton = true,
-                    if (_isRoutePlanned)
-                      {
-                        _shorRoutePlannedPlaces = true,
-                        _showCancelRouteButton = true,
-                      }
-                    else
-                      {
-                        if (_selectedPlace != null)
-                          {_shorRoutePlannedPlaces = true},
-                        _showPlanRouteButton = true,
-                      }
-                  });
-          },
-        ),
+        FutureBuilder<Position>(
+            future: GeolocatorPlatform.instance.getCurrentPosition(),
+            builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
+              if (!snapshot.hasData) {
+                // while data is loading:
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                final position = snapshot.data;
+                return map = Map(
+                    initialCameraPosition: CameraPosition(
+                        zoom: 15,
+                        target:
+                            new LatLng(position!.latitude, position.longitude)),
+                    onCameraMove: () {},
+                    onCirclePressed: (Circle circle) async => {
+                          setState(() => {
+                                _showSelectedComponent = true,
+                                _showSuggestedComponent = true,
+                                _selectedPlace = circle.data!['place'],
+                                Map.putHighlightCircle(
+                                    circle.data!['lat'], circle.data!['lon']),
+                                selectedPlace = new Positioned(
+                                  bottom: 120,
+                                  child: SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width - 30,
+                                    child: SelectedPlace(
+                                      selectedPlace: _selectedPlace!,
+                                    ),
+                                  ),
+                                ),
+                                suggestedPlaces = new SuggestedPlaces(
+                                    onTap: _onSmallPlaceClicked),
+                                map!.moveToLatLon(new LatLng(
+                                    circle.data!['lon'], circle.data!['lat']))
+                              })
+                        },
+                    onCameraIdle: () {
+                      if (!_showPlanRouteButton && !_showLocationButton)
+                        setState(() => {
+                              _showLocationButton = true,
+                              if (_isRoutePlanned)
+                                {
+                                  _shorRoutePlannedPlaces = true,
+                                  _showCancelRouteButton = true,
+                                }
+                              else
+                                {
+                                  if (_selectedPlace != null)
+                                    {_shorRoutePlannedPlaces = true},
+                                  _showPlanRouteButton = true,
+                                }
+                            });
+                    });
+              }
+            }),
         Visibility(child: suggestedPlaces!, visible: _showSuggestedComponent),
         Visibility(child: selectedPlace!, visible: _showSelectedComponent),
         Visibility(child: routePlanPlaces!, visible: _shorRoutePlannedPlaces),
@@ -92,6 +110,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                   setState(() => {
                         _showSuggestedComponent = false,
                         _showSelectedComponent = false,
+                        _showNewPlaceButton = false,
                       });
                 })),
         Visibility(
@@ -105,6 +124,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                       _showSuggestedComponent = false;
                       _shorRoutePlannedPlaces = false;
                       _isRoutePlanned = false;
+                      _showNewPlaceButton = true;
                       Map.mapBoxController!.clearCircles();
                       Map.mapBoxController!
                           .removeSymbols(Map.mapBoxController!.symbols);
@@ -116,7 +136,7 @@ class _HomeLayoutState extends State<HomeLayout> {
 
                       ProgressDialog pd = new ProgressDialog(context);
                       pd.show();
-                      Placess.getPlace().then((places) async => {
+                      Placess.getPlace().then((places) => {
                             for (Place place in places)
                               {
                                 Map.mapBoxController?.addCircle(
@@ -163,7 +183,7 @@ class _HomeLayoutState extends State<HomeLayout> {
           ),
         ),
         Visibility(
-          visible: _showLocationButton,
+          visible: _showNewPlaceButton,
           child: Positioned(
             top: 50,
             right: 15,
@@ -177,8 +197,36 @@ class _HomeLayoutState extends State<HomeLayout> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(RADIUS)),
-                  onPressed: () =>
-                      {Navigator.pushNamed(context, '/new-place')}),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/new-place').then((value) {
+                      ProgressDialog pd = new ProgressDialog(context);
+                      pd.show();
+                      Placess.getPlace().then((places) => {
+                            for (Place place in places)
+                              {
+                                Map.mapBoxController?.addCircle(
+                                    CircleOptions(
+                                        circleRadius: 10,
+                                        circleColor: "#70D799",
+                                        circleStrokeColor: "#FFF3F3",
+                                        circleStrokeWidth: 2,
+                                        geometry:
+                                            new LatLng(place.lon, place.lat)),
+                                    {
+                                      "lat": place.lat,
+                                      "lon": place.lon,
+                                      "address": place.address.getAddressOnUi(),
+                                      "name": place.name,
+                                      "image": place.photoUrl,
+                                      "place": place,
+                                      "showInfo": true,
+                                      "marker": false
+                                    })
+                              },
+                            pd.hide()
+                          });
+                    });
+                  }),
             ),
           ),
         )

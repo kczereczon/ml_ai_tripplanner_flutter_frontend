@@ -77,8 +77,11 @@ class Place {
         json?['name'] ?? "brak nazwy",
         json['_id'],
         json?['description'] ?? "Testowy opis",
-        Address(json['address']['street'], json['address']['number'],
-            json['address']['postal_code'], json['address']['city']),
+        Address(
+            json['address']['street'] ?? "",
+            json['address']['number'] ?? "",
+            json['address']['postal_code'] ?? "",
+            json['address']['city'] ?? ""),
         double.parse(json['distance'].toString()),
         double.parse("4"),
         double.parse(json['location'][0].toString()),

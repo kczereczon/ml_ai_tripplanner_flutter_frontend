@@ -1,8 +1,8 @@
 class Address {
-  final String street;
-  final String number;
-  final String postalCode;
-  final String city;
+  String street = "";
+  String number = "";
+  String postalCode = "";
+  String city = "";
 
   Address(this.street, this.number, this.postalCode, this.city);
 

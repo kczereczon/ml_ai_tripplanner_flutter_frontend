@@ -12,13 +12,19 @@ import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';
 
 // ignore: must_be_immutable
 class Map extends StatefulWidget with UsesApi {
-  Map({Key? key, this.onCirclePressed, this.onCameraMove, this.onCameraIdle})
+  Map(
+      {Key? key,
+      this.onCirclePressed,
+      this.onCameraMove,
+      this.onCameraIdle,
+      required this.initialCameraPosition})
       : super(key: key);
 
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   final Function(Circle)? onCirclePressed;
   Function? onCameraMove = () {};
   final Function? onCameraIdle;
+  final CameraPosition initialCameraPosition;
 
   static bool? disableUi = true;
   static MapboxMapController? mapBoxController;
@@ -121,16 +127,14 @@ class _MapState extends State<Map> with UsesApi {
         AnnotationType.symbol,
       ],
       onCameraIdle: () => {widget.onCameraIdle!(), _wasCameraIdle = true},
-      initialCameraPosition: CameraPosition(
-        target: _initialPosition,
-        zoom: 18.0,
-      ),
+      initialCameraPosition: widget.initialCameraPosition,
       onMapCreated: _onMapCreated,
       onStyleLoadedCallback: () => {print('loaded essss')},
     );
   }
 
   void _onMapCreated(MapboxMapController controller) async {
+    Map.mapBoxController = controller;
     controller.onCircleTapped.add((Circle circle) {
       if (circle.data!['showInfo']) {
         _wasCameraIdle = false;
