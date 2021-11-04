@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
@@ -147,6 +148,11 @@ class _MapState extends State<Map> with UsesApi {
         widget.onCameraMove!();
       }
     });
+    CoolAlert.show(
+        context: context,
+        type: CoolAlertType.loading,
+        text: "Pobieram punkty... 👀",
+        barrierDismissible: false);
 
     List<Place> places = await Placess.getPlace();
     for (Place place in places) {
@@ -171,6 +177,7 @@ class _MapState extends State<Map> with UsesApi {
       //     iconImage: "pin", geometry: new LatLng(place.lat, place.lon)));
     }
 
+    Navigator.of(context, rootNavigator: true).pop();
     Map.mapBoxController = controller;
     widget.setCurrentPositon();
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,7 +13,6 @@ import 'package:laira/utils/uses-api.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:progress_dialog/progress_dialog.dart';
 
 class NewPlace extends StatefulWidget {
   const NewPlace({Key? key}) : super(key: key);
@@ -437,9 +437,12 @@ class _NewPlaceState extends State<NewPlace> {
                   visible: _imageFileList.length > 0,
                   child: TextButton(
                       onPressed: () async {
-                        ProgressDialog pd = new ProgressDialog(context);
-                        pd.show();
                         try {
+                          CoolAlert.show(
+                              context: context,
+                              type: CoolAlertType.loading,
+                              barrierDismissible: false,
+                              text: "Dodaje nowe miejsce... 🥳");
                           Response? response = await UsesApi.multiPartPost(
                               '/api/places', File(_imageFileList[0].path),
                               body: {
@@ -452,11 +455,12 @@ class _NewPlaceState extends State<NewPlace> {
                                 "city": city,
                               });
                           if (response!.statusCode == 200) {
+                            Navigator.pop(context);
                             Navigator.pop(context, true);
+                          } else {
+                            Navigator.pop(context);
                           }
-                        } catch (e) {} finally {
-                          pd.hide();
-                        }
+                        } catch (e) {} finally {}
                       },
                       child: Text("Zapisz 💾",
                           style: TextStyle(

@@ -1,18 +1,16 @@
 import 'dart:convert';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:laira/components/map.dart' as customMap;
 import 'package:laira/entities/place.dart';
 import 'package:laira/utils/uses-api.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:mapbox_gl/mapbox_gl.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
 
@@ -34,12 +32,9 @@ class _PlanningState extends State<Planning> {
   double _value = 20;
   double _time = 60;
 
-  ProgressDialog? progressDialog;
-
   @override
   void initState() {
     super.initState();
-    progressDialog = new ProgressDialog(context);
 
     _radioButtons.add(new RadioModel(false, Icons.directions_car, "driving"));
     _radioButtons.add(new RadioModel(false, Icons.directions_bike, "cycling"));
@@ -112,12 +107,12 @@ class _PlanningState extends State<Planning> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Trip planning",
+              "Planowanie wycieczki",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
             ),
             SizedBox(height: 10),
             Text(
-              "Type of vehicle",
+              "Czym będziesz się poruszał",
               style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20),
             ),
             SizedBox(height: 10),
@@ -166,7 +161,7 @@ class _PlanningState extends State<Planning> {
             ]),
             SizedBox(height: 10),
             Text(
-              "How for you want to go",
+              "Maksymalny dystans",
               style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20),
             ),
             Column(
@@ -192,41 +187,45 @@ class _PlanningState extends State<Planning> {
               ],
             ),
             SizedBox(height: 10),
-            Text(
-              "How much time you have to spand",
-              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20),
-            ),
-            Column(
-              children: [
-                SliderTheme(
-                  data: SliderThemeData(
-                      thumbColor: Colors.white,
-                      activeTrackColor: Color(0xFF70D799),
-                      inactiveTrackColor: Color(0x5570D799),
-                      thumbShape:
-                          RoundSliderThumbShape(enabledThumbRadius: 10)),
-                  child: Slider(
-                    max: 180,
-                    value: _time,
-                    onChanged: (val) {
-                      _time = val;
-                      setState(() {});
-                    },
-                  ),
-                ),
-                Text(_minsToString(_time))
-              ],
-            ),
+            // Text(
+            //   "Jak dużo czasu chcesz poświecić (",
+            //   style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20),
+            // ),
+            // Column(
+            //   children: [
+            //     SliderTheme(
+            //       data: SliderThemeData(
+            //           thumbColor: Colors.white,
+            //           activeTrackColor: Color(0xFF70D799),
+            //           inactiveTrackColor: Color(0x5570D799),
+            //           thumbShape:
+            //               RoundSliderThumbShape(enabledThumbRadius: 10)),
+            //       child: Slider(
+            //         max: 180,
+            //         value: _time,
+            //         onChanged: (val) {
+            //           _time = val;
+            //           setState(() {});
+            //         },
+            //       ),
+            //     ),
+            //     Text(_minsToString(_time))
+            //   ],
+            // ),
             SizedBox(height: 20),
             SizedBox(
               width: MediaQuery.of(context).size.width,
               height: 50,
               child: TextButton(
                 onPressed: () async {
-                  await progressDialog!.show();
                   try {
+                    CoolAlert.show(
+                        context: context,
+                        type: CoolAlertType.loading,
+                        text: "Szukam nalepszej trasy... 🧐",
+                        barrierDismissible: false);
+
                     http.Response response = await this._planRoute();
-                    Future.delayed(Duration(seconds: 1));
                     Map<String, dynamic> map = jsonDecode(response.body);
 
                     widget.mapController!.clearCircles();
@@ -256,16 +255,15 @@ class _PlanningState extends State<Planning> {
 
                     widget.onMapPlanned!(places, latLngs);
 
-                    print('eloo1');
+                    Navigator.pop(context);
                     Navigator.pop(context, 'success');
                   } catch (e) {
                     print("Error: " + e.toString());
+                    Navigator.pop(context);
                     Navigator.pop(context, 'error');
-                  } finally {
-                    await progressDialog!.hide();
-                  }
+                  } finally {}
                 },
-                child: Text("Lets find a trip!",
+                child: Text("Wyznacz trasę 🚀",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,

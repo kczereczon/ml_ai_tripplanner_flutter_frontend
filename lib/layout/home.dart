@@ -1,3 +1,4 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:laira/components/map.dart';
@@ -9,7 +10,6 @@ import 'package:laira/entities/place.dart';
 import 'package:laira/screens/tabs/planning.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
-import 'package:progress_dialog/progress_dialog.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({Key? key}) : super(key: key);
@@ -34,6 +34,8 @@ class _HomeLayoutState extends State<HomeLayout> {
   Place? _selectedPlace;
   Map? map;
   static List<Place> _plannedRoute = [];
+
+  Loading? _loading = Loading();
 
   @override
   Widget build(BuildContext context) {
@@ -133,9 +135,12 @@ class _HomeLayoutState extends State<HomeLayout> {
 
                       Map.mapBoxController!.updateMyLocationTrackingMode(
                           MyLocationTrackingMode.Tracking);
+                      CoolAlert.show(
+                          context: context,
+                          type: CoolAlertType.loading,
+                          text: "Pobieram punkty... 👀",
+                          barrierDismissible: false);
 
-                      ProgressDialog pd = new ProgressDialog(context);
-                      pd.show();
                       Placess.getPlace().then((places) => {
                             for (Place place in places)
                               {
@@ -158,8 +163,9 @@ class _HomeLayoutState extends State<HomeLayout> {
                                       "marker": false
                                     })
                               },
-                            pd.hide(),
                           });
+
+                      Navigator.pop(context);
                     })
                   }),
         ),
@@ -199,8 +205,11 @@ class _HomeLayoutState extends State<HomeLayout> {
                       borderRadius: BorderRadius.circular(RADIUS)),
                   onPressed: () {
                     Navigator.pushNamed(context, '/new-place').then((value) {
-                      ProgressDialog pd = new ProgressDialog(context);
-                      pd.show();
+                      CoolAlert.show(
+                          context: context,
+                          type: CoolAlertType.loading,
+                          text: "Pobieram punkty... 👀",
+                          barrierDismissible: false);
                       Placess.getPlace().then((places) => {
                             for (Place place in places)
                               {
@@ -223,8 +232,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                                       "marker": false
                                     })
                               },
-                            pd.hide()
                           });
+                      Navigator.of(context, rootNavigator: true).pop();
                     });
                   }),
             ),
@@ -249,6 +258,14 @@ class _HomeLayoutState extends State<HomeLayout> {
           suggestedPlaces = new SuggestedPlaces(onTap: _onSmallPlaceClicked)
         });
     map!.moveToLatLon(new LatLng(place.lon, place.lat), zoom: 15);
+  }
+}
+
+class Loading extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
   }
 }
 

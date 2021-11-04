@@ -1,14 +1,13 @@
 import 'dart:convert';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:laira/screens/home.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:laira/utils/uses-api.dart';
-import 'package:progress_dialog/progress_dialog.dart';
 
 final storage = new FlutterSecureStorage();
 
@@ -21,8 +20,6 @@ class _LoginState extends State<Login> with UsesApi {
   String email = "";
   String password = "";
   String error = "";
-
-  ProgressDialog? pr;
 
   void _setError(String error) {
     setState(() {
@@ -43,7 +40,6 @@ class _LoginState extends State<Login> with UsesApi {
 
   @override
   Widget build(BuildContext context) {
-    pr = new ProgressDialog(context);
     return Scaffold(
         // backgroundColor: Color(0xFFEEEEEE),
         body: Padding(
@@ -122,11 +118,12 @@ class _LoginState extends State<Login> with UsesApi {
               height: 50,
               child: TextButton(
                 onPressed: () async {
-                  await pr!.show();
                   try {
+                    CoolAlert.show(
+                      context: context,
+                      type: CoolAlertType.loading,
+                    );
                     http.Response response = await this.login();
-                    print(response.body);
-                    Future.delayed(Duration(seconds: 1));
                     Map<String, dynamic> map = jsonDecode(response.body);
                     if (response.statusCode != 200) {
                       this._setError(map['error']);
@@ -143,10 +140,30 @@ class _LoginState extends State<Login> with UsesApi {
                   } catch (e) {
                     this._setError("Error occures " + e.toString());
                   } finally {
-                    await pr!.hide();
+                    Navigator.of(context, rootNavigator: true).pop();
                   }
                 },
-                child: Text("Log in",
+                child: Text("Zaloguj się",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300)),
+                style: TextButton.styleFrom(
+                  backgroundColor: Color(MAIN_COLOR_ALPHA),
+                ),
+              ),
+            ),
+            SizedBox(height: 5),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 50,
+              child: TextButton(
+                onPressed: () async {
+                  try {
+                    await Navigator.pushReplacementNamed(context, "/register");
+                  } catch (e) {} finally {}
+                },
+                child: Text("Utwórz konto",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,

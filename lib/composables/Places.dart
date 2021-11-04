@@ -12,7 +12,7 @@ class Placess {
     await UsesApi.post("/api/user/location",
         body: {"lat": position.latitude, "lon": position.longitude});
 
-    final response = await UsesApi.get("/api/places/all");
+    final response = await UsesApi.get("/api/places/around");
 
     final List<Place> places = [];
 

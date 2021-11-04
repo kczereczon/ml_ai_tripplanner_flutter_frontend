@@ -3,6 +3,7 @@ import 'package:laira/screens/home.dart';
 import 'package:laira/screens/login.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:laira/screens/places/new.dart';
+import 'package:laira/screens/register.dart';
 import 'package:laira/utils/constant.dart';
 
 void main() async {
@@ -18,11 +19,12 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(primaryColor: Color(MAIN_COLOR_ALPHA)),
-        home: HomePage(),
+        home: Login(),
         routes: {
           '/login': (context) => Login(),
           '/new-place': (context) => NewPlace(),
           '/home': (context) => HomePage(),
+          '/register': (context) => Register(),
         });
   }
 }
