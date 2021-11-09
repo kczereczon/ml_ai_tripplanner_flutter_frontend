@@ -4,6 +4,7 @@ import 'package:laira/screens/login.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:laira/screens/places/new.dart';
 import 'package:laira/screens/register.dart';
+import 'package:laira/screens/user.dart';
 import 'package:laira/utils/constant.dart';
 
 extension HexColor on Color {
@@ -102,12 +103,13 @@ class MyApp extends StatelessWidget {
                 backgroundColor: Color(LIGHT_COLOR_ALPHA),
                 elevation: 0,
                 iconTheme: IconThemeData(color: Color(MAIN_COLOR_ALPHA)))),
-        home: Login(),
+        home: HomePage(),
         routes: {
           '/login': (context) => Login(),
           '/new-place': (context) => NewPlace(),
           '/home': (context) => HomePage(),
           '/register': (context) => Register(),
+          '/user': (context) => User(),
         });
   }
 }

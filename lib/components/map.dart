@@ -157,7 +157,7 @@ class _MapState extends State<Map> with UsesApi {
         text: "Pobieram punkty... 👀",
         barrierDismissible: false);
 
-    List<Place> places = await Placess.getPlace();
+    List<Place> places = await Placess.getPlace(context: context);
     for (Place place in places) {
       controller.addCircle(
           CircleOptions(

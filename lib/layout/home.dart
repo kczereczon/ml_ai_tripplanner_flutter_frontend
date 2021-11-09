@@ -142,7 +142,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                           text: "Pobieram punkty... 👀",
                           barrierDismissible: false);
 
-                      Placess.getPlace().then((places) => {
+                      Placess.getPlace(context: context).then((places) => {
                             for (Place place in places)
                               {
                                 Map.mapBoxController?.addCircle(
@@ -216,7 +216,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                           type: CoolAlertType.loading,
                           text: "Pobieram punkty... 👀",
                           barrierDismissible: false);
-                      Placess.getPlace().then((places) => {
+                      Placess.getPlace(context: context).then((places) => {
                             for (Place place in places)
                               {
                                 Map.mapBoxController?.addCircle(
@@ -245,6 +245,28 @@ class _HomeLayoutState extends State<HomeLayout> {
                           });
                       Navigator.of(context, rootNavigator: true).pop();
                     });
+                  }),
+            ),
+          ),
+        ),
+        Visibility(
+          visible: _showNewPlaceButton,
+          child: Positioned(
+            top: 50,
+            left: 15,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(),
+              child: FloatingActionButton(
+                  child: Icon(Icons.settings,
+                      color: Theme.of(context).primaryColor),
+                  backgroundColor: Theme.of(context).backgroundColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(RADIUS)),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/user').then((value) {});
                   }),
             ),
           ),
