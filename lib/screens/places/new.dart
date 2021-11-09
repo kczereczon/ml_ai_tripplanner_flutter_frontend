@@ -13,6 +13,7 @@ import 'package:laira/utils/uses-api.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:laira/main.dart';
 
 class NewPlace extends StatefulWidget {
   const NewPlace({Key? key}) : super(key: key);
@@ -51,432 +52,414 @@ class _NewPlaceState extends State<NewPlace> {
   Widget build(BuildContext context) {
     final PageController controller = PageController(initialPage: 0);
     return Scaffold(
+        backgroundColor: Theme.of(context).backgroundColor,
         body: PageView(
-      physics: NeverScrollableScrollPhysics(),
-      scrollDirection: Axis.horizontal,
-      controller: controller,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                "Opowiedz o nowym miejscu 🤩",
-                style: TextStyle(fontSize: 30),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Text("Nazwa miejsca",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(
-                height: 5,
-              ),
-              TextField(
-                textCapitalization: TextCapitalization.words,
-                onChanged: (name) => setState(() => this.name = name),
-                inputFormatters: [],
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  errorText: _nameInvalid ? "Musisz uzupełnić nazwę!" : null,
-                  hintText: "Tutaj powinna znaleźć się nazwa obiektu.",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      width: 0,
-                      style: BorderStyle.none,
+          physics: NeverScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          controller: controller,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Text(
+                    "Opowiedz o nowym miejscu 🤩",
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text("Nazwa miejsca",
+                      style: Theme.of(context).textTheme.subtitle1),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  TextField(
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (name) => setState(() => this.name = name),
+                    inputFormatters: [],
+                    decoration: InputDecoration(
+                      errorText:
+                          _nameInvalid ? "Musisz uzupełnić nazwę!" : null,
+                      hintText: "Tutaj powinna znaleźć się nazwa obiektu.",
                     ),
                   ),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text("Opis",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(
-                height: 5,
-              ),
-              TextField(
-                textCapitalization: TextCapitalization.sentences,
-                onChanged: (description) =>
-                    setState(() => this.description = description),
-                maxLines: 6,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  errorText:
-                      _descriptionInvalid ? "Musisz uzupełnić opis!" : null,
-                  hintText:
-                      "Opisz w kilku zdaniach co można znaleźć w nowymi miejscu",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      width: 0,
-                      style: BorderStyle.none,
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text("Opis", style: Theme.of(context).textTheme.subtitle1),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  TextField(
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: (description) =>
+                        setState(() => this.description = description),
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      errorText:
+                          _descriptionInvalid ? "Musisz uzupełnić opis!" : null,
+                      hintText:
+                          "Opisz w kilku zdaniach co można znaleźć w nowymi miejscu",
                     ),
                   ),
-                ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: TextButton(
+                        onPressed: () => {
+                              setState(() => {
+                                    _nameInvalid = false,
+                                    _descriptionInvalid = false,
+                                  }),
+                              if (name.isEmpty)
+                                {
+                                  setState(() => {
+                                        _nameInvalid = true,
+                                      })
+                                }
+                              else if (description.isEmpty)
+                                {
+                                  setState(() => {
+                                        _descriptionInvalid = true,
+                                      })
+                                }
+                              else
+                                {
+                                  SystemChannels.textInput
+                                      .invokeMethod('TextInput.hide'),
+                                  controller.nextPage(
+                                      duration: Duration(milliseconds: 100),
+                                      curve: Curves.ease),
+                                }
+                            },
+                        child: Text("Dalej 🥳",
+                            style: TextStyle(
+                                color: Theme.of(context).accentColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w300)),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                        )),
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: TextButton(
-                    onPressed: () => {
-                          setState(() => {
-                                _nameInvalid = false,
-                                _descriptionInvalid = false,
-                              }),
-                          if (name.isEmpty)
-                            {
-                              setState(() => {
-                                    _nameInvalid = true,
-                                  })
-                            }
-                          else if (description.isEmpty)
-                            {
-                              setState(() => {
-                                    _descriptionInvalid = true,
-                                  })
-                            }
-                          else
-                            {
-                              SystemChannels.textInput
-                                  .invokeMethod('TextInput.hide'),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Text(
+                    "Wskaż na mapie gdzie możemy znaleźć to miejsce 🧐",
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  FutureBuilder<Position>(
+                      future: GeolocatorPlatform.instance.getCurrentPosition(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<Position> snapshot) {
+                        if (!snapshot.hasData) {
+                          // while data is loading:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else {
+                          // data loaded:
+                          final position = snapshot.data;
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 300,
+                            child: MapboxMap(
+                                styleString: style,
+                                accessToken: token,
+                                onMapCreated:
+                                    (MapboxMapController controller) => {
+                                          this.controller = controller,
+                                          _getAddress(LatLng(position!.latitude,
+                                              position.longitude))
+                                        },
+                                onMapClick: (Point point, LatLng latlon) =>
+                                    {_getAddress(latlon)},
+                                initialCameraPosition: CameraPosition(
+                                    zoom: 15,
+                                    target: new LatLng(position!.latitude,
+                                        position.longitude))),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8))),
+                          );
+                        }
+                      }),
+                  SizedBox(height: 30),
+                  Text("Ulica", style: Theme.of(context).textTheme.subtitle1),
+                  Text(street,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Kod pocztow",
+                      style: Theme.of(context).textTheme.subtitle1),
+                  Text(postCode,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Miasto", style: Theme.of(context).textTheme.subtitle1),
+                  Text(city,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: TextButton(
+                        onPressed: () => {
                               controller.nextPage(
                                   duration: Duration(milliseconds: 100),
                                   curve: Curves.ease),
-                            }
-                        },
-                    child: Text("Dalej 🥳",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w300)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color(MAIN_COLOR_ALPHA),
-                    )),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                "Wskaż na mapie gdzie możemy znaleźć to miejsce 🧐",
-                style: TextStyle(fontSize: 30),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              FutureBuilder<Position>(
-                  future: GeolocatorPlatform.instance.getCurrentPosition(),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<Position> snapshot) {
-                    if (!snapshot.hasData) {
-                      // while data is loading:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else {
-                      // data loaded:
-                      final position = snapshot.data;
-                      return Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 300,
-                        child: MapboxMap(
-                            styleString: style,
-                            accessToken: token,
-                            onMapCreated: (MapboxMapController controller) => {
-                                  this.controller = controller,
-                                  _getAddress(LatLng(
-                                      position!.latitude, position.longitude))
-                                },
-                            onMapClick: (Point point, LatLng latlon) =>
-                                {_getAddress(latlon)},
-                            initialCameraPosition: CameraPosition(
-                                zoom: 15,
-                                target: new LatLng(
-                                    position!.latitude, position.longitude))),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(8))),
-                      );
-                    }
-                  }),
-              Text("Adres",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text("Ulica",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(street,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Kod pocztow",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(postCode,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Miasto",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(city,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: TextButton(
-                    onPressed: () => {
-                          controller.nextPage(
-                              duration: Duration(milliseconds: 100),
-                              curve: Curves.ease),
-                        },
-                    child: Text("Dalej",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w300)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color(MAIN_COLOR_ALPHA),
-                    )),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                "Potrzebujemy zdjęć tego miejsca!",
-                style: TextStyle(fontSize: 30),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              TextButton(
-                  onPressed: () async {
-                    try {
-                      final XFile? photo =
-                          await _picker.pickImage(source: ImageSource.camera);
-                      setState(() =>
-                          {_imageFileList.clear(), _imageFileList.add(photo!)});
-                    } catch (e) {
-                      setState(() {
-                        _pickImageError = e.toString();
-                      });
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 20),
-                      Text("Aparat",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300)),
-                    ],
+                            },
+                        child: Text("Dalej",
+                            style: TextStyle(
+                                color: Theme.of(context).accentColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w300)),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                        )),
                   ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(LIGHTER_MAIN_COLOR_ALPHA),
-                  )),
-              TextButton(
-                  onPressed: () async {
-                    try {
-                      final XFile? photo =
-                          await _picker.pickImage(source: ImageSource.gallery);
-                      setState(() =>
-                          {_imageFileList.clear(), _imageFileList.add(photo!)});
-                    } catch (e) {
-                      setState(() {
-                        _pickImageError = e.toString();
-                      });
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.photo_album,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 20),
-                      Text("Galeria",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300)),
-                    ],
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 40,
                   ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(LIGHTER_MAIN_COLOR_ALPHA),
-                  )),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Visibility(
-                  visible: _imageFileList.length > 0,
-                  child: TextButton(
-                      onPressed: () => {
-                            controller.nextPage(
-                                duration: Duration(milliseconds: 100),
-                                curve: Curves.ease),
-                          },
-                      child: Text("Dalej",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300)),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Color(MAIN_COLOR_ALPHA),
-                      )),
-                ),
-              ),
-              Expanded(child: _previewImages())
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 40,
-              ),
-              Text(
-                "Podsumowanie 😍",
-                style: TextStyle(fontSize: 30),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Nazwa miejsca",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(name,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Opis",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(description,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Ulica",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(street,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Kod pocztow",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(postCode,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Miasto",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(city,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Województwo",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(state,
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
-              SizedBox(
-                height: 5,
-              ),
-              Text("Zdjęcie",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Expanded(child: _previewImages()),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Visibility(
-                  visible: _imageFileList.length > 0,
-                  child: TextButton(
+                  Text(
+                    "Potrzebujemy zdjęć tego miejsca!",
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  TextButton(
                       onPressed: () async {
                         try {
-                          CoolAlert.show(
-                              context: context,
-                              type: CoolAlertType.loading,
-                              barrierDismissible: false,
-                              text: "Dodaje nowe miejsce... 🥳");
-                          Response? response = await UsesApi.multiPartPost(
-                              '/api/places', File(_imageFileList[0].path),
-                              body: {
-                                "name": name,
-                                "description": description,
-                                "lat": lat.toString(),
-                                "lon": lon.toString(),
-                                "street": street,
-                                "postal_code": postCode,
-                                "city": city,
+                          final XFile? photo = await _picker.pickImage(
+                              source: ImageSource.camera);
+                          setState(() => {
+                                _imageFileList.clear(),
+                                _imageFileList.add(photo!)
                               });
-                          if (response!.statusCode == 200) {
-                            Navigator.pop(context);
-                            Navigator.pop(context, true);
-                          } else {
-                            Navigator.pop(context);
-                          }
-                        } catch (e) {} finally {}
+                        } catch (e) {
+                          setState(() {
+                            _pickImageError = e.toString();
+                          });
+                        }
                       },
-                      child: Text("Zapisz 💾",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300)),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.camera_alt,
+                            color: Theme.of(context).accentColor,
+                          ),
+                          SizedBox(width: 20),
+                          Text("Aparat",
+                              style: TextStyle(
+                                  color: Theme.of(context).accentColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w300)),
+                        ],
+                      ),
                       style: TextButton.styleFrom(
-                        backgroundColor: Color(MAIN_COLOR_ALPHA),
+                        backgroundColor: Theme.of(context).primaryColor,
                       )),
-                ),
+                  TextButton(
+                      onPressed: () async {
+                        try {
+                          final XFile? photo = await _picker.pickImage(
+                              source: ImageSource.gallery);
+                          setState(() => {
+                                _imageFileList.clear(),
+                                _imageFileList.add(photo!)
+                              });
+                        } catch (e) {
+                          setState(() {
+                            _pickImageError = e.toString();
+                          });
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.photo_album,
+                            color: Theme.of(context).accentColor,
+                          ),
+                          SizedBox(width: 20),
+                          Text("Galeria",
+                              style: TextStyle(
+                                  color: Theme.of(context).accentColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w300)),
+                        ],
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                      )),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Visibility(
+                      visible: _imageFileList.length > 0,
+                      child: TextButton(
+                          onPressed: () => {
+                                controller.nextPage(
+                                    duration: Duration(milliseconds: 100),
+                                    curve: Curves.ease),
+                              },
+                          child: Text("Dalej",
+                              style: TextStyle(
+                                  color: Theme.of(context).accentColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w300)),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          )),
+                    ),
+                  ),
+                  Expanded(child: _previewImages())
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
-    ));
+            ),
+            Padding(
+              padding: const EdgeInsets.all(MARGIN_HOME_LAYOUT),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Text(
+                    "Podsumowanie 😍",
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Nazwa miejsca",
+                      style: Theme.of(context).textTheme.subtitle1),
+                  Text(name,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Opis", style: Theme.of(context).textTheme.subtitle1),
+                  Text(description,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Ulica", style: Theme.of(context).textTheme.subtitle1),
+                  Text(street,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Kod pocztow",
+                      style: Theme.of(context).textTheme.subtitle1),
+                  Text(postCode,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Miasto", style: Theme.of(context).textTheme.subtitle1),
+                  Text(city,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Województwo",
+                      style: Theme.of(context).textTheme.subtitle1),
+                  Text(state,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text("Zdjęcie", style: Theme.of(context).textTheme.subtitle1),
+                  Expanded(child: _previewImages()),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Visibility(
+                      visible: _imageFileList.length > 0,
+                      child: TextButton(
+                          onPressed: () async {
+                            try {
+                              CoolAlert.show(
+                                  context: context,
+                                  type: CoolAlertType.loading,
+                                  barrierDismissible: false,
+                                  text: "Dodaje nowe miejsce... 🥳");
+                              Response? response = await UsesApi.multiPartPost(
+                                  '/api/places', File(_imageFileList[0].path),
+                                  body: {
+                                    "name": name,
+                                    "description": description,
+                                    "lat": lat.toString(),
+                                    "lon": lon.toString(),
+                                    "street": street,
+                                    "postal_code": postCode,
+                                    "city": city,
+                                  });
+                              if (response!.statusCode == 200) {
+                                Navigator.pop(context);
+                                Navigator.pop(context, true);
+                              } else {
+                                Navigator.pop(context);
+                              }
+                            } catch (e) {} finally {}
+                          },
+                          child: Text("Zapisz 💾",
+                              style: TextStyle(
+                                  color: Theme.of(context).accentColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w300)),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          )),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ));
   }
 
   void _getAddress(LatLng latLng) async {
@@ -525,8 +508,8 @@ class _NewPlaceState extends State<NewPlace> {
     this.controller!.addCircle(CircleOptions(
           geometry: latLng,
           circleRadius: 10,
-          circleColor: "#70D799",
-          circleStrokeColor: "#FFF3F3",
+          circleColor: Theme.of(context).primaryColor.toHex(),
+          circleStrokeColor: Theme.of(context).accentColor.toHex(),
           circleStrokeWidth: 2,
         ));
   }

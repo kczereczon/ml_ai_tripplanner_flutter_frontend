@@ -10,6 +10,7 @@ import 'package:laira/entities/place.dart';
 import 'package:laira/screens/tabs/planning.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:laira/main.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({Key? key}) : super(key: key);
@@ -147,8 +148,12 @@ class _HomeLayoutState extends State<HomeLayout> {
                                 Map.mapBoxController?.addCircle(
                                     CircleOptions(
                                         circleRadius: 10,
-                                        circleColor: "#70D799",
-                                        circleStrokeColor: "#FFF3F3",
+                                        circleColor: Theme.of(context)
+                                            .primaryColor
+                                            .toHex(),
+                                        circleStrokeColor: Theme.of(context)
+                                            .accentColor
+                                            .toHex(),
                                         circleStrokeWidth: 2,
                                         geometry:
                                             new LatLng(place.lon, place.lat)),
@@ -179,8 +184,9 @@ class _HomeLayoutState extends State<HomeLayout> {
               height: 50,
               decoration: BoxDecoration(),
               child: FloatingActionButton(
-                  child: Icon(Icons.location_pin, color: Color(0xFF70D799)),
-                  backgroundColor: Colors.white,
+                  child: Icon(Icons.location_pin,
+                      color: Theme.of(context).primaryColor),
+                  backgroundColor: Theme.of(context).backgroundColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(RADIUS)),
@@ -198,8 +204,8 @@ class _HomeLayoutState extends State<HomeLayout> {
               height: 50,
               decoration: BoxDecoration(),
               child: FloatingActionButton(
-                  child: Icon(Icons.add, color: Color(0xFF70D799)),
-                  backgroundColor: Colors.white,
+                  child: Icon(Icons.add, color: Theme.of(context).primaryColor),
+                  backgroundColor: Theme.of(context).backgroundColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(RADIUS)),
@@ -216,8 +222,12 @@ class _HomeLayoutState extends State<HomeLayout> {
                                 Map.mapBoxController?.addCircle(
                                     CircleOptions(
                                         circleRadius: 10,
-                                        circleColor: "#70D799",
-                                        circleStrokeColor: "#FFF3F3",
+                                        circleColor: Theme.of(context)
+                                            .primaryColor
+                                            .toHex(),
+                                        circleStrokeColor: Theme.of(context)
+                                            .accentColor
+                                            .toHex(),
                                         circleStrokeWidth: 2,
                                         geometry:
                                             new LatLng(place.lon, place.lat)),
@@ -371,11 +381,11 @@ class RoutePlanButton extends StatelessWidget {
             },
             child: Text("Wyznacz trasę",
                 style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).accentColor,
                     fontSize: 20,
                     fontWeight: FontWeight.w300)),
             style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF70D799),
+                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(RADIUS))),
           ),
@@ -408,11 +418,11 @@ class RouteCancelButton extends StatelessWidget {
             },
             child: Text("Anuluj trasę",
                 style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).accentColor,
                     fontSize: 20,
                     fontWeight: FontWeight.w300)),
             style: TextButton.styleFrom(
-                backgroundColor: Color(0xFFc44240),
+                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(RADIUS))),
           ),

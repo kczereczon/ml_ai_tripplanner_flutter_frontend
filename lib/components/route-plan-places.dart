@@ -62,7 +62,7 @@ class _RoutePlanPlacesState extends State<RoutePlanPlaces> {
                         margin: EdgeInsets.only(),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(RADIUS),
-                          color: Colors.white,
+                          color: Theme.of(context).backgroundColor,
                         ))),
               ),
             )));

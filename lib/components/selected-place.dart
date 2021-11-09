@@ -51,7 +51,7 @@ class SelectedPlace extends StatelessWidget {
               Text(
                 _selectedPlace!.name,
                 style: TextStyle(
-                    color: Color(0xFF70D799),
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize:
                         _selectedPlace!.name.toString().characters.length > 15
@@ -60,7 +60,10 @@ class SelectedPlace extends StatelessWidget {
               ),
               Text(
                 _selectedPlace!.address.getAddressOnUi(),
-                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 15),
+                style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 15,
+                    color: Theme.of(context).accentColor),
               ),
             ]),
           ))
@@ -68,7 +71,7 @@ class SelectedPlace extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(RADIUS),
-        color: Colors.white,
+        color: Theme.of(context).backgroundColor,
       ),
     );
   }

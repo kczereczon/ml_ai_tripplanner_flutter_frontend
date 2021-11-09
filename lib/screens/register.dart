@@ -30,12 +30,16 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // backgroundColor: Color(0xFFEEEEEE),
+        appBar: AppBar(
+            elevation: 0,
+            leading: IconButton(
+                onPressed: () =>
+                    Navigator.of(context).pushReplacementNamed('/login'),
+                icon: Icon(Icons.arrow_back_ios))),
+        backgroundColor: Theme.of(context).backgroundColor,
         body: Padding(
             padding: const EdgeInsets.all(15.0),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: <
-                    Widget>[
+            child: Column(children: <Widget>[
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
@@ -45,10 +49,12 @@ class _RegisterState extends State<Register> {
                         style: TextStyle(
                             fontSize: 60,
                             fontWeight: FontWeight.bold,
-                            color: Color(MAIN_COLOR_ALPHA))),
-                    Text("Rejestracja",
+                            color: Theme.of(context).primaryColor)),
+                    Text("Rejestracja!",
                         style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.w200)),
+                            fontSize: 30,
+                            fontWeight: FontWeight.w200,
+                            color: Theme.of(context).accentColor)),
                   ],
                 ),
               ),
@@ -58,30 +64,20 @@ class _RegisterState extends State<Register> {
               TextField(
                 onChanged: (name) => this.name = name,
                 decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
                   hintText: "Nazwa",
                   errorText: _nameError ? this._nameErrorMessage : null,
                   prefixIcon:
-                      Icon(Icons.person, color: Color(MAIN_COLOR_ALPHA)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      width: 0,
-                      style: BorderStyle.none,
-                    ),
-                  ),
+                      Icon(Icons.person, color: Theme.of(context).primaryColor),
                 ),
               ),
               SizedBox(height: 10),
               TextField(
                 onChanged: (email) => this.email = email,
                 decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
                   hintText: "Email",
                   errorText: _emailError ? this._emailErrorMessage : null,
-                  prefixIcon: Icon(Icons.mail, color: Color(MAIN_COLOR_ALPHA)),
+                  prefixIcon:
+                      Icon(Icons.mail, color: Theme.of(context).primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -96,11 +92,10 @@ class _RegisterState extends State<Register> {
                 onChanged: (password) => this.password = password,
                 obscureText: true,
                 decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
                   hintText: "Hasło",
                   errorText: _passwordError ? this._passwordErrorMessage : null,
-                  prefixIcon: Icon(Icons.lock, color: Color(MAIN_COLOR_ALPHA)),
+                  prefixIcon:
+                      Icon(Icons.lock, color: Theme.of(context).primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -115,10 +110,9 @@ class _RegisterState extends State<Register> {
                 onChanged: (repassword) => this.repassword = repassword,
                 obscureText: true,
                 decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
                   hintText: "Powtórz hasło",
-                  prefixIcon: Icon(Icons.lock, color: Color(MAIN_COLOR_ALPHA)),
+                  prefixIcon:
+                      Icon(Icons.lock, color: Theme.of(context).primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -217,33 +211,15 @@ class _RegisterState extends State<Register> {
                   },
                   child: Text("Utwórz konto 😉",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).accentColor,
                           fontSize: 20,
                           fontWeight: FontWeight.w300)),
                   style: TextButton.styleFrom(
-                    backgroundColor: Color(MAIN_COLOR_ALPHA),
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
               SizedBox(height: 5),
-              SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 50,
-                  child: TextButton(
-                    onPressed: () async {
-                      try {
-                        await Navigator.pushReplacementNamed(context, "/login");
-                      } catch (e) {} finally {}
-                    },
-                    child: Text("Wróć do logowania",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w300)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color(MAIN_COLOR_ALPHA),
-                    ),
-                  ))
             ])));
   }
 }

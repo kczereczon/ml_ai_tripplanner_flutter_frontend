@@ -1,11 +1,10 @@
-import 'dart:convert';
-
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:laira/composables/Places.dart';
 import 'package:laira/entities/place.dart';
+import 'package:laira/main.dart';
 import 'package:laira/utils/constant.dart';
 import 'package:laira/utils/uses-api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -111,14 +110,18 @@ class Map extends StatefulWidget with UsesApi {
 
 class _MapState extends State<Map> with UsesApi {
   final String? token = dotenv.env['MAPBOX_API_KEY'];
-  final String style = 'mapbox://styles/mapbox/streets-v11';
+  final String styleLight = 'mapbox://styles/mapbox/streets-v11';
+  final String styleDark = 'mapbox://styles/mapbox/dark-v10';
 
   bool _wasCameraIdle = false;
 
   @override
   Widget build(BuildContext context) {
     return MapboxMap(
-      styleString: style,
+      styleString:
+          Theme.of(context).primaryColor != Color(DARKER_MAIN_COLOR_ALPHA)
+              ? styleLight
+              : styleDark,
       accessToken: token,
       myLocationEnabled: true,
       annotationOrder: <AnnotationType>[
@@ -159,8 +162,8 @@ class _MapState extends State<Map> with UsesApi {
       controller.addCircle(
           CircleOptions(
               circleRadius: 10,
-              circleColor: "#70D799",
-              circleStrokeColor: "#FFF3F3",
+              circleColor: Theme.of(context).primaryColor.toHex(),
+              circleStrokeColor: Theme.of(context).accentColor.toHex(),
               circleStrokeWidth: 2,
               geometry: new LatLng(place.lon, place.lat)),
           {

@@ -37,7 +37,7 @@ class SmallPlace extends StatelessWidget {
                 )),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(RADIUS),
-              color: LIGHT_COLOR_OBJECT,
+              color: Theme.of(context).backgroundColor,
             ),
             width:
                 (MediaQuery.of(context).size.width - MARGIN_HOME_LAYOUT) / 3 -
