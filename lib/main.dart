@@ -37,7 +37,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         darkTheme: ThemeData(
+            scaffoldBackgroundColor: Color(DARK_COLOR_ALPHA),
             primaryColor: Color(DARKER_MAIN_COLOR_ALPHA),
+            cardColor: Color(DARKER_COLOR_ALPHA),
+            dialogBackgroundColor: Color(DARK_COLOR_ALPHA),
             accentColor: Colors.grey[300],
             backgroundColor: Color(DARK_COLOR_ALPHA),
             hintColor: Colors.white38,

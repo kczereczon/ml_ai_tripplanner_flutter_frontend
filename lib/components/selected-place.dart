@@ -20,26 +20,23 @@ class SelectedPlace extends StatelessWidget {
     return Container(
       child: Row(
         children: [
-          Hero(
-            tag: _selectedPlace!.id,
-            child: InkWell(
-              onTap: () => {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PlaceDetail(
-                        place: _selectedPlace, tag: _selectedPlace!.id)))
-              },
-              child: Container(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(RADIUS),
-                  child: Image.network(
-                    _selectedPlace!.photoUrl,
-                    height: 140,
-                    width: 140,
-                    fit: BoxFit.cover,
-                  ),
+          InkWell(
+            onTap: () => {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => PlaceDetail(
+                      place: _selectedPlace, tag: _selectedPlace!.id)))
+            },
+            child: Container(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(RADIUS),
+                child: Image.network(
+                  _selectedPlace!.photoUrl,
+                  height: 140,
+                  width: 140,
+                  fit: BoxFit.cover,
                 ),
-                padding: EdgeInsets.all(8),
               ),
+              padding: EdgeInsets.all(8),
             ),
           ),
           Expanded(
