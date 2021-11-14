@@ -134,55 +134,169 @@ class _PlaceDetailState extends State<PlaceDetail> {
               ],
             ),
           ),
-          CommentWrite(
+          Comments(
             placeId: widget.place!.id,
-          ),
-          Comments()
+          )
         ]),
       ),
     ));
   }
 }
 
-class Comments extends StatelessWidget {
+class Comments extends StatefulWidget {
   const Comments({
     Key? key,
+    required this.placeId,
   }) : super(key: key);
+
+  final String placeId;
+
+  @override
+  _CommentsState createState() => _CommentsState();
+}
+
+class _CommentsState extends State<Comments> {
+  List<Comment> _comments = [];
+
+  Future<List<Comment>> _getComments({BuildContext? context}) async {
+    http.Response response = await UsesApi.get(
+        '/api/comments/places/place/' + widget.placeId,
+        context: context);
+
+    List<dynamic> map = jsonDecode(response.body);
+    List<Comment> comments = [];
+
+    for (var row in map) {
+      comments.add(Comment(
+        comment: row['description'],
+        name: row['user']['name'],
+        date: row['createdAt'],
+        profileUrl:
+            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png",
+      ));
+    }
+
+    setState(() => _comments = comments);
+
+    return comments;
+  }
+
+  Future<http.Response> _getUser({BuildContext? context}) async {
+    return await UsesApi.get('/api/user/details', context: context);
+  }
+
+  String _description = "";
+
+  TextEditingController _controller = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    _controller.addListener(() => this._description = _controller.text);
     return Container(
-      padding: const EdgeInsets.only(left: 16.0, top: 30, right: 16.0),
-      child: SingleChildScrollView(
-          child: Column(
-        children: [
-          Comment(),
-          Comment(),
-          Comment(),
-          Comment(),
-          Comment(),
-          Comment(),
-        ],
-      )),
-    );
+        padding: const EdgeInsets.only(left: 16.0, top: 30, right: 16.0),
+        child: Column(
+          children: [
+            FutureBuilder(
+              future: _getUser(context: context),
+              builder: (BuildContext context,
+                  AsyncSnapshot<http.Response> snapshot) {
+                if (snapshot.hasData) {
+                  Map<String, dynamic> map = jsonDecode(snapshot.data!.body);
+
+                  return Column(
+                    children: [
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 5.0),
+                              child: CircleAvatar(
+                                radius: 28,
+                                backgroundImage: NetworkImage(map['test']
+                                            ['profilePhoto'] !=
+                                        null
+                                    ? map['test']['profilePhoto']
+                                    : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"),
+                              ),
+                            ),
+                            Expanded(
+                                child: TextField(
+                              controller: _controller,
+                              decoration: InputDecoration(
+                                filled: true,
+                                hintText: "Piszesz jako ${map['test']['name']}",
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.send),
+                                  onPressed: () {
+                                    UsesApi.post('/api/comments/places/',
+                                        body: {
+                                          "place_id": widget.placeId,
+                                          "description": this._description,
+                                          "rating": 3
+                                        }).then((response) => setState(() =>
+                                        {_controller.clear(), _getComments()}));
+                                  },
+                                ),
+                              ),
+                            )),
+                          ])
+                    ],
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  );
+                }
+              },
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            FutureBuilder(
+                future: _getComments(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<Comment>> snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: _comments.length > 0
+                          ? _comments
+                          : [Text("Nie ma tu komentarzy, napisz pierwszy!")],
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                }),
+          ],
+        ));
   }
 }
 
 class Comment extends StatelessWidget {
   const Comment({
     Key? key,
+    required this.name,
+    required this.comment,
+    required this.date,
+    required this.profileUrl,
   }) : super(key: key);
+
+  final String name;
+  final String comment;
+  final String date;
+  final String profileUrl;
 
   @override
   Widget build(BuildContext context) {
+    DateTime newDate = DateTime.parse(this.date);
     return Row(
       // mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 16.0, bottom: 10),
           child: CircleAvatar(
-            backgroundImage: NetworkImage(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Kayaking_off_Na_Pali_coast.jpg/1200px-Kayaking_off_Na_Pali_coast.jpg"),
+            backgroundImage: NetworkImage(profileUrl),
           ),
         ),
         Expanded(
@@ -194,11 +308,15 @@ class Comment extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "John Kowalski",
+                    name,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   Text(
-                    "02.03.2020",
+                    newDate.day.toString() +
+                        '.' +
+                        newDate.month.toString() +
+                        '.' +
+                        newDate.year.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w300,
                       fontSize: 13,
@@ -206,118 +324,11 @@ class Comment extends StatelessWidget {
                   ),
                 ],
               ),
-              Text("Best place for holyday!"),
+              Text(comment),
             ],
           ),
         )
       ],
-    );
-  }
-}
-
-class CommentWrite extends StatefulWidget {
-  const CommentWrite({
-    Key? key,
-    required this.placeId,
-  }) : super(key: key);
-
-  final String placeId;
-
-  @override
-  _CommentWriteState createState() => _CommentWriteState();
-}
-
-class _CommentWriteState extends State<CommentWrite> {
-  Future<http.Response> _getUser({BuildContext? context}) async {
-    return await UsesApi.get('/api/user/details', context: context);
-  }
-
-  String _description = "";
-
-  @override
-  Widget build(BuildContext context) {
-    // return Container(
-    //   padding: const EdgeInsets.only(left: 16.0, top: 30, right: 16.0),
-    //   child: Column(
-    //     children: [
-    //       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    //         Padding(
-    //           padding: const EdgeInsets.only(right: 5.0),
-    //           child: CircleAvatar(
-    //             radius: 28,
-    //             backgroundImage: NetworkImage(
-    //                 "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Kayaking_off_Na_Pali_coast.jpg/1200px-Kayaking_off_Na_Pali_coast.jpg"),
-    //           ),
-    //         ),
-    //         Expanded(
-    //             child: TextField(
-    //           decoration: InputDecoration(
-    //             filled: true,
-    //             hintText: "Write comment",
-    //             suffixIcon: Icon(Icons.send),
-    //           ),
-    //         )),
-    //       ])
-    //     ],
-    //   ),
-    // );
-    return FutureBuilder(
-      future: _getUser(context: context),
-      builder: (BuildContext context, AsyncSnapshot<http.Response> snapshot) {
-        if (snapshot.hasData) {
-          Map<String, dynamic> map = jsonDecode(snapshot.data!.body);
-          TextEditingController _controller = new TextEditingController();
-          _controller.addListener(() => this._description = _controller.text);
-
-          return Container(
-            padding: const EdgeInsets.only(left: 16.0, top: 30, right: 16.0),
-            child: Column(
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5.0),
-                        child: CircleAvatar(
-                          radius: 28,
-                          backgroundImage: NetworkImage(map['test']
-                                      ['profilePhoto'] !=
-                                  null
-                              ? map['test']['profilePhoto']
-                              : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"),
-                        ),
-                      ),
-                      Expanded(
-                          child: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(
-                          filled: true,
-                          hintText: "Piszesz jako ${map['test']['name']}",
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.send),
-                            onPressed: () {
-                              UsesApi.post('/api/comments/places/', body: {
-                                "place_id": widget.placeId,
-                                "description": this._description,
-                                "rating": 3
-                              }).then((response) =>
-                                  setState(() => _controller.clear()));
-                            },
-                          ),
-                        ),
-                      )),
-                    ])
-              ],
-            ),
-          );
-        } else {
-          return Center(
-            child: CircularProgressIndicator(
-              color: Theme.of(context).primaryColor,
-            ),
-          );
-        }
-      },
     );
   }
 }
